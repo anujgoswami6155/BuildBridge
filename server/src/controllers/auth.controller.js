@@ -1,4 +1,4 @@
-import registerUser from "../services/auth.services.js";
+import { registerUser, loginUser } from "../services/auth.services.js";
 
 const registerController = async (req, res) => {
     const { name, email, password } = req.body;
@@ -17,4 +17,21 @@ const registerController = async (req, res) => {
     }
 };
 
-export default registerController;
+const loginController = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        await loginUser(email, password);
+
+        res.status(200).json({
+            message: "Login successful"
+        });
+
+    } catch (error) {
+        res.status(401).json({
+            message: error.message
+        });
+    }
+};
+
+export { loginController, registerController };

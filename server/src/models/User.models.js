@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
     }
 }, {
     // To keep track of the createdAt and UpdatedAt
-    timestamp: true
+    timestamps: true
 });
 
 

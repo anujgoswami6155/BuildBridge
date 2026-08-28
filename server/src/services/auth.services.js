@@ -14,6 +14,22 @@ const registerUser = async (name, email, password) => {
     await User.create({name: name, email: email, passwordHash: passwordHash})
 
     return "User registered";
-};  
+}; 
 
-export default registerUser;
+const loginUser = async (email, password) => {
+    const user = await User.findOne({email: email}).exec();
+
+    if(user === null) {
+        throw new Error("Invalid email or password");
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+    if(!isMatch) {
+        throw new Error("Invalid password");
+    }
+
+    return "Login successful";
+};
+
+export { registerUser, loginUser };
