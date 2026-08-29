@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authrouter from "./routes/auth.routes.js";
+import projectRouter from "./routes/project.routes.js";
 
 dotenv.config();
 
@@ -24,6 +25,9 @@ app.get("/", (req, res) => {
 
 //If a request comes to "/auth"
 app.use('/api/auth', authrouter);
+
+//If a request comes to "/projects"
+app.use('/api/projects', projectRouter);
 
 // Starts the server and tells it to listen to the incoming requests
 app.listen(PORT, () => {
