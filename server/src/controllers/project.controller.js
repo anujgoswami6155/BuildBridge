@@ -1,4 +1,4 @@
-import {createProject, updateProject} from "../services/project.services.js";
+import {createProject, updateProject, getProject} from "../services/project.services.js";
 
 const createProjectController = async (req, res) => {
     try {
@@ -31,4 +31,20 @@ const updateProjectController = async (req, res) => {
     }
 };
 
-export { createProjectController, updateProjectController };
+const getProjectController = async (req, res) => {
+    try {
+        const projectId = req.params.projectId;
+
+        // Get the project
+        const project = await getProject(projectId);
+
+        res.status(200).json(project);
+
+    } catch (error) {
+        res.status(404).json({
+            message: error.message
+        });
+    }
+};
+
+export { createProjectController, updateProjectController, getProjectController };

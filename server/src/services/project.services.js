@@ -22,4 +22,15 @@ const updateProject = async (projectId, projectData) => {
     return project;
 };
 
-export { createProject, updateProject };
+const getProject = async (projectId) => {
+    // Find the project by ID
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    return project;
+};
+
+export { createProject, updateProject, getProject };
