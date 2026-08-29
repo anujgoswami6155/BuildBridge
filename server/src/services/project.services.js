@@ -1,6 +1,9 @@
 import Project from "../models/Project.models.js";
 
+// Create a new project and associate it with the user
 const createProject = async (projectData, userId) => {
+
+    // Create a new project instance and set the owner to the userId
     const project = new Project({
         ...projectData,
         owner: userId
@@ -8,4 +11,15 @@ const createProject = async (projectData, userId) => {
     return await project.save();
 };
 
-export default createProject;
+const updateProject = async (projectId, projectData) => {
+    // Find the project by ID and update it
+    const project = await Project.findByIdAndUpdate(projectId, projectData, { new: true });
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    return project;
+};
+
+export { createProject, updateProject };
