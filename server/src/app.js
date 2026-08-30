@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authrouter from "./routes/auth.routes.js";
 import projectRouter from "./routes/project.routes.js";
+import applicationRouter from "./routes/application.routes.js";
 
 dotenv.config();
 
@@ -28,6 +29,9 @@ app.use('/api/auth', authrouter);
 
 //If a request comes to "/projects"
 app.use('/api/projects', projectRouter);
+
+//If a request comes to "/applications"
+app.use('/api/applications', applicationRouter);
 
 // Starts the server and tells it to listen to the incoming requests
 app.listen(PORT, () => {
