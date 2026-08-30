@@ -1,4 +1,4 @@
-import { applyToProject } from "../services/application.services.js";
+import { applyToProject, getApplications } from "../services/application.services.js";
 
 const applyController = async (req, res) => {
     try {
@@ -17,4 +17,20 @@ const applyController = async (req, res) => {
     }
 }
 
-export { applyController };
+const getApplicationsController = async (req, res) => {
+    try {
+        const projectId = req.params.projectId;
+
+        // Call the getApplications service function
+        const applications = await getApplications(projectId);
+
+        res.status(200).json(applications);
+
+    } catch (error) {
+        res.status(500).json({ 
+            message: error.message 
+        });
+    }
+}
+
+export { applyController, getApplicationsController };

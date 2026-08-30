@@ -35,4 +35,20 @@ const applyToProject = async (projectId, userId) => {
     return await newApplication.save();
 };
 
-export { applyToProject };
+const getApplications = async (projectId) => {
+    // Check if the project exists
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    // Get all applications for the project
+    const applications = await Application.find({ project: projectId })
+    .populate("applicant", "name email")
+    .exec();
+
+    return applications;
+};
+
+export { applyToProject, getApplications };
