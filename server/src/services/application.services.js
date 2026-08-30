@@ -51,4 +51,43 @@ const getApplications = async (projectId) => {
     return applications;
 };
 
-export { applyToProject, getApplications };
+const updateApplicationStatus = async (applicationId, status) => {
+    // Check if the application exists
+    const application = await Application.findById(applicationId).exec();
+
+    if (!application) {
+        throw new Error("Application not found");
+    }
+
+    // Check if the application has already been processed
+    if (application.status !== "pending") {
+        throw new Error("Application has already been processed.");
+    }
+
+    application.status = status;
+
+    // If the application is accepted, add the applicant to the project's team
+    if (status === "accepted") {
+        const project = await Project.findById(application.project).exec();
+
+        if (!project) {
+            throw new Error("Project not found");
+        }
+
+        const alreadyMember = project.teamMembers.some(
+            member => member.toString() === application.applicant.toString()
+        );
+
+        if (alreadyMember) {
+            throw new Error("Applicant is already a team member of this project.");
+        }
+
+        project.teamMembers.push(application.applicant);
+
+        await project.save();
+    }
+
+    return await application.save();
+};
+
+export { applyToProject, getApplications, updateApplicationStatus };
