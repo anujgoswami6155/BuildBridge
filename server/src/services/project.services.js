@@ -33,4 +33,24 @@ const getProject = async (projectId) => {
     return project;
 };
 
-export { createProject, updateProject, getProject };
+const getProjects = async (filters) => {
+    // Build the query object based on filters
+    const query = {};
+
+    if (filters.search) {
+        query.$or = [
+            { title: { $regex: filters.search, $options: "i" } },
+            { description: { $regex: filters.search, $options: "i" } },
+            { requiredSkills: { $regex: filters.search, $options: "i" } },
+            { techStack: { $regex: filters.search, $options: "i" } }
+        ];
+    }
+
+    if (filters.category) {
+        query.category = filters.category;
+    }
+
+    return await Project.find(query).exec();
+};
+
+export { createProject, updateProject, getProject, getProjects };
