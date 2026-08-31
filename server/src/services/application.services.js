@@ -1,6 +1,7 @@
 import Application from "../models/Application.models.js";
 import Project from "../models/Project.models.js";
 
+// Apply to a project
 const applyToProject = async (projectId, userId) => {
 
     // Check if the project exists
@@ -35,6 +36,7 @@ const applyToProject = async (projectId, userId) => {
     return await newApplication.save();
 };
 
+// Get all applications for a specific project
 const getApplications = async (projectId) => {
     // Check if the project exists
     const project = await Project.findById(projectId).exec();
@@ -51,6 +53,7 @@ const getApplications = async (projectId) => {
     return applications;
 };
 
+// Update the status of an application (accept or reject)
 const updateApplicationStatus = async (applicationId, status) => {
     // Check if the application exists
     const application = await Application.findById(applicationId).exec();

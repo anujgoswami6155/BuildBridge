@@ -11,6 +11,7 @@ const createProject = async (projectData, userId) => {
     return await project.save();
 };
 
+// Update an existing project by its ID
 const updateProject = async (projectId, projectData) => {
     // Find the project by ID and update it
     const project = await Project.findByIdAndUpdate(projectId, projectData, { new: true });
@@ -22,6 +23,7 @@ const updateProject = async (projectId, projectData) => {
     return project;
 };
 
+// Get a project by its ID
 const getProject = async (projectId) => {
     // Find the project by ID
     const project = await Project.findById(projectId).exec();
@@ -33,10 +35,12 @@ const getProject = async (projectId) => {
     return project;
 };
 
+// Get all projects with optional filters
 const getProjects = async (filters) => {
     // Build the query object based on filters
     const query = {};
 
+    // If a search term is provided, use it to filter projects by title, description, required skills, or tech stack
     if (filters.search) {
         query.$or = [
             { title: { $regex: filters.search, $options: "i" } },
@@ -46,6 +50,7 @@ const getProjects = async (filters) => {
         ];
     }
 
+    // If a category filter is provided, add it to the query
     if (filters.category) {
         query.category = filters.category;
     }
