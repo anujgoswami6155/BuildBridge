@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import authrouter from "./routes/auth.routes.js";
 import projectRouter from "./routes/project.routes.js";
 import applicationRouter from "./routes/application.routes.js";
+import tasksRouter from "./routes/tasks.routes.js";
 
 dotenv.config();
 
@@ -32,6 +33,9 @@ app.use('/api/projects', projectRouter);
 
 //If a request comes to "/applications"
 app.use('/api/applications', applicationRouter);
+
+//If a request comes to "/tasks"
+app.use('/api/tasks', tasksRouter);
 
 // Starts the server and tells it to listen to the incoming requests
 app.listen(PORT, () => {

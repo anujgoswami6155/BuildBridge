@@ -1,3 +1,5 @@
+import { createTask } from "../services/tasks.services.js";
+
 const createTaskController = async(req, res) => {
     try {
         const {projectId} = req.params;
@@ -6,8 +8,7 @@ const createTaskController = async(req, res) => {
 
         return res.status(201).json({message: "Task created successfully.", task});
     } catch (error) {
-        console.error("Error creating task:", error);
-        return res.status(500).json({message: "Internal server error."});
+        return res.status(400).json({message: error.message});
     }
 };
 
