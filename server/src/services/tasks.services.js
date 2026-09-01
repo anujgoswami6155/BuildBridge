@@ -7,7 +7,7 @@ const createTask = async (projectId, taskData) => {
     if (!project) {
         throw new Error("Project not found");
     }
-    
+
     const assignedTo = taskData.assignedTo || null;
 
     if (assignedTo) {
@@ -31,4 +31,12 @@ const createTask = async (projectId, taskData) => {
     return await task.save();
 };
 
-export { createTask };
+const getTasks = async (projectId) => {
+    const project = await Project.findById(projectId).exec();
+    if (!project) {
+        throw new Error("Project not found");
+    }
+    return await Task.find({ project: projectId }).exec();
+};
+
+export { createTask, getTasks };
