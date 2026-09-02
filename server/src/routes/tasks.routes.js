@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createTaskController, getTasksController } from "../controllers/tasks.controller.js";
+import { createTaskController, getTasksController, updateTaskController } from "../controllers/tasks.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import ownercheckMiddleware from "../middlewares/ownercheck.middleware.js";
 import teamMemberMiddleware from "../middlewares/teamMember.middleware.js";
@@ -12,4 +12,5 @@ tasksRouter.post("/:projectId", authMiddleware, ownercheckMiddleware, createTask
 
 tasksRouter.get("/:projectId", authMiddleware, teamMemberMiddleware, getTasksController);
 
+tasksRouter.patch("/:projectId/:taskId", authMiddleware, updateTaskMiddleware, updateTaskController);
 export default tasksRouter;
