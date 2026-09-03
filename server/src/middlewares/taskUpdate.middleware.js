@@ -1,5 +1,5 @@
-import Task from "../models/tasks.model.js";
-import Project from "../models/projects.model.js";
+import Task from "../models/Task.models.js";
+import Project from "../models/Project.models.js";
 
 const updateTaskMiddleware = async (req, res, next) => {
     try {

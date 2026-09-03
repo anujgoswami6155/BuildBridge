@@ -1,7 +1,8 @@
 import {
     createTask,
     getTasks,
-    updateTask
+    updateTask,
+    deleteTask
 } from "../services/tasks.services.js";
 
 const createTaskController = async (req, res) => {
@@ -86,8 +87,26 @@ const updateTaskController = async (req, res) => {
     }
 };
 
+const deleteTaskController = async (req, res) => {
+    try {
+        const { projectId, taskId } = req.params;
+
+        await deleteTask(projectId, taskId);
+
+        return res.status(200).json({
+            message: "Task deleted successfully."
+        });
+
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
 export {
     createTaskController,
     getTasksController,
-    updateTaskController
+    updateTaskController,
+    deleteTaskController
 };

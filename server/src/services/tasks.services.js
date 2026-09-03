@@ -47,6 +47,7 @@ const updateTask = async (taskId, updateData) => {
         throw new Error("Task not found");
     }
 
+    // Validate assignedTo if it's being updated
     if (updateData.assignedTo !== undefined && updateData.assignedTo !== null) {
         const project = await Project.findById(task.project).exec();
 
@@ -70,4 +71,24 @@ const updateTask = async (taskId, updateData) => {
     return await task.save();
 };
 
-export { createTask, getTasks, updateTask };
+const deleteTask = async (projectId, taskId) => {
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    const task = await Task.findById(taskId).exec();
+
+    if (!task) {
+        throw new Error("Task not found");
+    }
+
+    if (task.project.toString() !== projectId.toString()) {
+        throw new Error("Task does not belong to the specified project");
+    }
+
+    return await Task.deleteOne({ _id: taskId }).exec();
+};
+
+export { createTask, getTasks, updateTask, deleteTask };
