@@ -33,4 +33,15 @@ const getComments = async (projectId) => {
     return comments;
 };
 
-export { createComment, getComments };
+const updateComment = async (commentId, content) => {
+    const comment = await Comment.findById(commentId).exec();
+
+    if (!comment) {
+        throw new Error("Comment not found");
+    }
+
+    comment.content = content;
+    return await comment.save();
+};
+
+export { createComment, getComments, updateComment };
