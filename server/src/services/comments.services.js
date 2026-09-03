@@ -19,4 +19,18 @@ const createComment = async (projectId, content, author) => {
     return await comment.save();
 };
 
-export { createComment };
+const getComments = async (projectId) => {
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    const comments = await Comment.find({ project: projectId })
+        .populate("author", "name")
+        .exec();
+
+    return comments;
+};
+
+export { createComment, getComments };
