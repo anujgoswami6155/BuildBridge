@@ -1,4 +1,4 @@
-import { createComment, getComments, updateComment } from "../services/comments.services.js";
+import { createComment, getComments, updateComment, deleteComment } from "../services/comments.services.js";
 
 const createCommentController = async (req, res) => {
     try {
@@ -75,4 +75,21 @@ const updateCommentController = async (req, res) => {
     }
 };
 
-export { createCommentController, getCommentsController, updateCommentController };
+const deleteCommentController = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+
+        const comment = await deleteComment(commentId);
+
+        return res.status(200).json({
+            message: "Comment deleted successfully",
+            comment
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
+export { createCommentController, getCommentsController, updateCommentController, deleteCommentController };
