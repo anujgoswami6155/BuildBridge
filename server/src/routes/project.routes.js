@@ -11,7 +11,7 @@ import {
     getProjectController,
     getProjectsController,
     removeMemberController,
-    //leaveProjectController
+    leaveProjectController
 } from "../controllers/project.controller.js";
 
 // Create a new project
@@ -42,11 +42,11 @@ projectRouter.get(
 );
 
 // Member leaves project
-// projectRouter.delete(
-//     "/:projectId/members/me",
-//     authMiddleware,
-//     leaveProjectController
-// );
+projectRouter.delete(
+    "/:projectId/members/me",
+    authMiddleware,
+    leaveProjectController
+);
 
 // Owner removes member
 projectRouter.delete(
