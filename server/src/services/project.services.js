@@ -58,4 +58,30 @@ const getProjects = async (filters) => {
     return await Project.find(query).exec();
 };
 
-export { createProject, updateProject, getProject, getProjects };
+const removeMember = async (projectId, userId) => {
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    if (project.owner.toString() === userId.toString()) {
+        throw new Error("Project owner cannot be removed");
+    }
+
+    const isMember = project.teamMembers.some(
+        member => member.toString() === userId.toString()
+    );
+
+    if (!isMember) {
+        throw new Error("User is not a team member");
+    }
+
+    project.teamMembers = project.teamMembers.filter(
+        member => member.toString() !== userId.toString()
+    );
+
+    return await project.save();
+};
+
+export { createProject, updateProject, getProject, getProjects, removeMember };

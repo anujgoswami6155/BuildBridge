@@ -4,14 +4,56 @@ const projectRouter = express.Router();
 
 import authMiddleware from "../middlewares/auth.middleware.js";
 import ownerCheckMiddleware from "../middlewares/ownercheck.middleware.js";
-import {createProjectController, updateProjectController, getProjectController, getProjectsController} from "../controllers/project.controller.js";
 
-projectRouter.post("/create", authMiddleware, createProjectController);
+import {
+    createProjectController,
+    updateProjectController,
+    getProjectController,
+    getProjectsController,
+    removeMemberController,
+    //leaveProjectController
+} from "../controllers/project.controller.js";
 
-projectRouter.put("/:projectId", authMiddleware, ownerCheckMiddleware, updateProjectController);
+// Create a new project
+projectRouter.post(
+    "/create",
+    authMiddleware,
+    createProjectController
+);
 
-projectRouter.get("/:projectId", getProjectController);
+// Update an existing project
+projectRouter.put(
+    "/:projectId",
+    authMiddleware,
+    ownerCheckMiddleware,
+    updateProjectController
+);
 
-projectRouter.get("/", getProjectsController);
+// Get a specific project by ID
+projectRouter.get(
+    "/:projectId",
+    getProjectController
+);
+
+// Get all projects for the authenticated user
+projectRouter.get(
+    "/",
+    getProjectsController
+);
+
+// Member leaves project
+// projectRouter.delete(
+//     "/:projectId/members/me",
+//     authMiddleware,
+//     leaveProjectController
+// );
+
+// Owner removes member
+projectRouter.delete(
+    "/:projectId/members/:userId",
+    authMiddleware,
+    ownerCheckMiddleware,
+    removeMemberController
+);
 
 export default projectRouter;
