@@ -1,6 +1,7 @@
 import Task from "../models/Task.models.js";
 import Project from "../models/Project.models.js";
 
+
 const createTask = async (projectId, taskData) => {
     const project = await Project.findById(projectId).exec();
 
@@ -30,6 +31,7 @@ const createTask = async (projectId, taskData) => {
     return await task.save();
 };
 
+
 const getTasks = async (projectId) => {
     const project = await Project.findById(projectId).exec();
 
@@ -39,6 +41,7 @@ const getTasks = async (projectId) => {
 
     return await Task.find({ project: projectId }).exec();
 };
+
 
 const updateTask = async (taskId, updateData) => {
     const task = await Task.findById(taskId).exec();
@@ -71,6 +74,7 @@ const updateTask = async (taskId, updateData) => {
     return await task.save();
 };
 
+
 const deleteTask = async (projectId, taskId) => {
     const project = await Project.findById(projectId).exec();
 
@@ -91,4 +95,29 @@ const deleteTask = async (projectId, taskId) => {
     return await Task.deleteOne({ _id: taskId }).exec();
 };
 
-export { createTask, getTasks, updateTask, deleteTask };
+
+// Get tasks grouped by status for the Kanban board
+const getKanban = async (projectId) => {
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    const tasks = await Task.find({ project: projectId }).exec();
+
+    return {
+        todo: tasks.filter(task => task.status === "todo"),
+        inProgress: tasks.filter(task => task.status === "in-progress"),
+        completed: tasks.filter(task => task.status === "completed")
+    };
+};
+
+
+export {
+    createTask,
+    getTasks,
+    updateTask,
+    deleteTask,
+    getKanban
+};

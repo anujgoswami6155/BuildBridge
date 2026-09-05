@@ -2,8 +2,10 @@ import {
     createTask,
     getTasks,
     updateTask,
-    deleteTask
+    deleteTask,
+    getKanban
 } from "../services/tasks.services.js";
+
 
 const createTaskController = async (req, res) => {
     try {
@@ -22,6 +24,7 @@ const createTaskController = async (req, res) => {
     }
 };
 
+
 const getTasksController = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -39,11 +42,18 @@ const getTasksController = async (req, res) => {
     }
 };
 
+
 const updateTaskController = async (req, res) => {
     try {
         const { title, description, assignedTo, status } = req.body;
 
-        const allowedFields = ["title", "description", "assignedTo", "status"];
+        const allowedFields = [
+            "title",
+            "description",
+            "assignedTo",
+            "status"
+        ];
+
         const requestedFields = Object.keys(req.body);
 
         // Reject unknown fields
@@ -59,7 +69,10 @@ const updateTaskController = async (req, res) => {
 
         // Assigned member can only update status
         if (!req.isOwner) {
-            if (requestedFields.length !== 1 || !requestedFields.includes("status")) {
+            if (
+                requestedFields.length !== 1 ||
+                !requestedFields.includes("status")
+            ) {
                 return res.status(403).json({
                     message: "Team members can only update task status."
                 });
@@ -87,6 +100,7 @@ const updateTaskController = async (req, res) => {
     }
 };
 
+
 const deleteTaskController = async (req, res) => {
     try {
         const { projectId, taskId } = req.params;
@@ -104,9 +118,31 @@ const deleteTaskController = async (req, res) => {
     }
 };
 
+
+// Get Kanban board
+const getKanbanController = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        const kanban = await getKanban(projectId);
+
+        return res.status(200).json({
+            message: "Kanban board retrieved successfully.",
+            kanban
+        });
+
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
+
 export {
     createTaskController,
     getTasksController,
     updateTaskController,
-    deleteTaskController
+    deleteTaskController,
+    getKanbanController
 };
