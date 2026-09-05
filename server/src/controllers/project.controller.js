@@ -1,4 +1,4 @@
-import {createProject, updateProject, getProject, getProjects, removeMember, leaveProject} from "../services/project.services.js";
+import {createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace} from "../services/project.services.js";
 
 const createProjectController = async (req, res) => {
     try {
@@ -96,4 +96,18 @@ const leaveProjectController = async (req, res) => {
     }
 };
 
-export { createProjectController, updateProjectController, getProjectController, getProjectsController, removeMemberController, leaveProjectController };
+const getWorkspaceController = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        const workspace = await getWorkspace(projectId);
+
+        return res.status(200).json(workspace);
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
+export { createProjectController, updateProjectController, getProjectController, getProjectsController, removeMemberController, leaveProjectController, getWorkspaceController };

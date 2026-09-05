@@ -110,4 +110,17 @@ const leaveProject = async (projectId, userId) => {
     return await project.save();
 };
 
-export { createProject, updateProject, getProject, getProjects, removeMember, leaveProject };
+const getWorkspace = async (projectId) => {
+    const project = await Project.findById(projectId)
+        .populate("owner", "name email")
+        .populate("teamMembers", "name email")
+        .exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    return project;
+};
+
+export { createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace };

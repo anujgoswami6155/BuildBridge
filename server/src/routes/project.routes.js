@@ -4,6 +4,7 @@ const projectRouter = express.Router();
 
 import authMiddleware from "../middlewares/auth.middleware.js";
 import ownerCheckMiddleware from "../middlewares/ownercheck.middleware.js";
+import teamMemberMiddleware from "../middlewares/teammember.middleware.js";
 
 import {
     createProjectController,
@@ -11,7 +12,8 @@ import {
     getProjectController,
     getProjectsController,
     removeMemberController,
-    leaveProjectController
+    leaveProjectController,
+    getWorkspaceController
 } from "../controllers/project.controller.js";
 
 // Create a new project
@@ -29,6 +31,14 @@ projectRouter.put(
     updateProjectController
 );
 
+// Get project workspace (members, tasks, etc.)
+projectRouter.get(
+    "/:projectId/workspace",
+    authMiddleware,
+    teamMemberMiddleware,
+    getWorkspaceController
+);
+
 // Get a specific project by ID
 projectRouter.get(
     "/:projectId",
@@ -40,6 +50,7 @@ projectRouter.get(
     "/",
     getProjectsController
 );
+
 
 // Member leaves project
 projectRouter.delete(
