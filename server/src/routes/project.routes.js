@@ -4,7 +4,7 @@ const projectRouter = express.Router();
 
 import authMiddleware from "../middlewares/auth.middleware.js";
 import ownerCheckMiddleware from "../middlewares/ownercheck.middleware.js";
-import teamMemberMiddleware from "../middlewares/teammember.middleware.js";
+import teamMemberMiddleware from "../middlewares/teamMember.middleware.js";
 
 import {
     createProjectController,
@@ -13,7 +13,8 @@ import {
     getProjectsController,
     removeMemberController,
     leaveProjectController,
-    getWorkspaceController
+    getWorkspaceController,
+    deleteProjectController
 } from "../controllers/project.controller.js";
 
 // Create a new project
@@ -66,5 +67,14 @@ projectRouter.delete(
     ownerCheckMiddleware,
     removeMemberController
 );
+
+// Delete the Project
+projectRouter.delete(
+    "/:projectId",
+    authMiddleware,
+    ownerCheckMiddleware,
+    deleteProjectController   
+)
+
 
 export default projectRouter;

@@ -1,4 +1,4 @@
-import {createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace} from "../services/project.services.js";
+import {createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace, deleteProject} from "../services/project.services.js";
 
 const createProjectController = async (req, res) => {
     try {
@@ -110,4 +110,20 @@ const getWorkspaceController = async (req, res) => {
     }
 };
 
-export { createProjectController, updateProjectController, getProjectController, getProjectsController, removeMemberController, leaveProjectController, getWorkspaceController };
+const deleteProjectController = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        await deleteProject(projectId);
+
+        res.status(200).json({
+            message: "Project deleted successfully"
+        });
+    } catch (error) {
+        res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
+export { createProjectController, updateProjectController, getProjectController, getProjectsController, removeMemberController, leaveProjectController, getWorkspaceController, deleteProjectController };

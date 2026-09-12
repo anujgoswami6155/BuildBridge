@@ -123,4 +123,14 @@ const getWorkspace = async (projectId) => {
     return project;
 };
 
-export { createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace };
+const deleteProject = async (projectId) => {
+    const project = await Project.findByIdAndDelete(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    return project;
+};
+
+export { createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace, deleteProject };
