@@ -1,4 +1,6 @@
 import Project from "../models/Project.models.js";
+import Application from "../models/Application.models.js";
+import Task from "../models/Task.models.js";
 
 // Create a new project and associate it with the user
 const createProject = async (projectData, userId) => {
@@ -124,13 +126,23 @@ const getWorkspace = async (projectId) => {
 };
 
 const deleteProject = async (projectId) => {
-    const project = await Project.findByIdAndDelete(projectId).exec();
+    const project = await Project.findById(projectId).exec();
 
     if (!project) {
         throw new Error("Project not found");
     }
 
-    return project;
+    await Application.deleteMany({
+        project: projectId
+    });
+
+    await Task.deleteMany({
+        project: projectId
+    });
+
+    await Project.findByIdAndDelete(projectId);
+
+    return true;
 };
 
 export { createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace, deleteProject };
