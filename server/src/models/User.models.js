@@ -35,6 +35,13 @@ const userSchema = new mongoose.Schema({
         required: false,
     },
 
+    education: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 200,
+    },
+
     github : {
         type: String,
         required: false,
