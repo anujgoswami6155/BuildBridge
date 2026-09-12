@@ -2,7 +2,8 @@ import {
     registerUser,
     loginUser,
     getCurrentUser,
-    updateUserProfile
+    updateUserProfile,
+    getPublicProfile
 } from "../services/auth.services.js";
 
 
@@ -91,10 +92,28 @@ const updateProfileController = async (req, res) => {
     }
 };
 
+const getPublicProfileController = async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const user = await getPublicProfile(userId);
+
+        res.status(200).json({
+            message: "Public profile retrieved successfully",
+            user: user
+        });
+
+    } catch (error) {
+        res.status(404).json({
+            message: error.message
+        });
+    }
+};
 
 export {
     loginController,
     registerController,
     meController,
-    updateProfileController
+    updateProfileController,
+    getPublicProfileController
 };

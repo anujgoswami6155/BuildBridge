@@ -107,10 +107,23 @@ const updateUserProfile = async (userId, profileData) => {
     return user;
 };
 
+const getPublicProfile = async (userId) => {
+    // Fetch the user by ID
+    const user = await User.findById(userId)
+        .select('name bio skills education github linkedIn createdAt')
+        .exec();
+
+    if (user === null) {
+        throw new Error("User not found");
+    }
+
+    return user;
+};
 
 export {
     registerUser,
     loginUser,
     getCurrentUser,
-    updateUserProfile
+    updateUserProfile,
+    getPublicProfile
 };
