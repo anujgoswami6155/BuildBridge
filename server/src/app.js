@@ -6,6 +6,7 @@ import projectRouter from "./routes/project.routes.js";
 import applicationRouter from "./routes/application.routes.js";
 import tasksRouter from "./routes/tasks.routes.js";
 import commentsRouter from "./routes/comment.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 
 dotenv.config();
 
@@ -40,6 +41,9 @@ app.use('/api/tasks', tasksRouter);
 
 //If a request comes to "/comments"
 app.use('/api/comments', commentsRouter);
+
+//If a request comes to "/dashboard"
+app.use('/api/dashboard', dashboardRouter);
 
 // Starts the server and tells it to listen to the incoming requests
 app.listen(PORT, () => {
