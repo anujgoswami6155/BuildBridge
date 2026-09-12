@@ -120,10 +120,15 @@ const getPublicProfile = async (userId) => {
     return user;
 };
 
+const logoutUser = async () => {
+    return "Logout successful";
+};
+
 export {
     registerUser,
     loginUser,
     getCurrentUser,
     updateUserProfile,
-    getPublicProfile
+    getPublicProfile,
+    logoutUser
 };

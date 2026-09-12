@@ -3,7 +3,8 @@ import {
     loginUser,
     getCurrentUser,
     updateUserProfile,
-    getPublicProfile
+    getPublicProfile,
+    logoutUser
 } from "../services/auth.services.js";
 
 
@@ -110,10 +111,26 @@ const getPublicProfileController = async (req, res) => {
     }
 };
 
+const logoutController = async (req, res) => {
+    try {
+        const result = await logoutUser();
+
+        return res.status(200).json({
+            message: result
+        });
+
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
 export {
     loginController,
     registerController,
     meController,
     updateProfileController,
-    getPublicProfileController
+    getPublicProfileController,
+    logoutController
 };
