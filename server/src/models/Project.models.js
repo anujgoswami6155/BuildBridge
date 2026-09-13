@@ -27,6 +27,19 @@ const projectSchema = new mongoose.Schema({
         type : [String],
         required : false,
     },
+    resources: [{
+        title: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 100
+        },
+        url: {
+        type: String,
+            required: true,
+            trim: true
+        }
+    }],
     teamSize : {
         type : Number,
         required : true,

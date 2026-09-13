@@ -2,10 +2,10 @@ import Project from "../models/Project.models.js";
 import Application from "../models/Application.models.js";
 import Task from "../models/Task.models.js";
 
+
 // Create a new project and associate it with the user
 const createProject = async (projectData, userId) => {
 
-    // Create a new project instance and set the owner to the userId
     const project = new Project({
         ...projectData,
         owner: userId
@@ -18,11 +18,70 @@ const createProject = async (projectData, userId) => {
 // Update an existing project by its ID
 const updateProject = async (projectId, projectData) => {
 
-    // Find the project by ID and update it
+    const allowedFields = [
+        "title",
+        "description",
+        "category",
+        "requiredSkills",
+        "techStack",
+        "resources",
+        "teamSize",
+        "recruitmentStatus"
+    ];
+
+    const updateData = {};
+
+    // Only allow approved fields to be updated
+    for (const field of allowedFields) {
+        if (projectData[field] !== undefined) {
+            updateData[field] = projectData[field];
+        }
+    }
+
+    // Make sure at least one valid field was provided
+    if (Object.keys(updateData).length === 0) {
+        throw new Error("No valid fields provided for update");
+    }
+
+    // Validate resources if they are being updated
+    if (updateData.resources !== undefined) {
+
+        if (!Array.isArray(updateData.resources)) {
+            throw new Error("Resources must be an array");
+        }
+
+        for (const resource of updateData.resources) {
+
+            if (
+                typeof resource !== "object" ||
+                resource === null
+            ) {
+                throw new Error("Each resource must be an object");
+            }
+
+            if (
+                typeof resource.title !== "string" ||
+                resource.title.trim().length === 0
+            ) {
+                throw new Error("Resource title is required");
+            }
+
+            if (
+                typeof resource.url !== "string" ||
+                resource.url.trim().length === 0
+            ) {
+                throw new Error("Resource URL is required");
+            }
+        }
+    }
+
     const project = await Project.findByIdAndUpdate(
         projectId,
-        projectData,
-        { new: true }
+        updateData,
+        {
+            new: true,
+            runValidators: true
+        }
     );
 
     if (!project) {
@@ -36,7 +95,6 @@ const updateProject = async (projectId, projectData) => {
 // Get a project by its ID
 const getProject = async (projectId) => {
 
-    // Find the project by ID
     const project = await Project.findById(projectId).exec();
 
     if (!project) {
@@ -50,21 +108,39 @@ const getProject = async (projectId) => {
 // Get all projects with optional filters
 const getProjects = async (filters) => {
 
-    // Build the query object based on filters
     const query = {};
 
-    // If a search term is provided, search across
-    // title, description, required skills, and technologies
+    // Search by title, description, required skills, or tech stack
     if (filters.search) {
         query.$or = [
-            { title: { $regex: filters.search, $options: "i" } },
-            { description: { $regex: filters.search, $options: "i" } },
-            { requiredSkills: { $regex: filters.search, $options: "i" } },
-            { technologies: { $regex: filters.search, $options: "i" } }
+            {
+                title: {
+                    $regex: filters.search,
+                    $options: "i"
+                }
+            },
+            {
+                description: {
+                    $regex: filters.search,
+                    $options: "i"
+                }
+            },
+            {
+                requiredSkills: {
+                    $regex: filters.search,
+                    $options: "i"
+                }
+            },
+            {
+                techStack: {
+                    $regex: filters.search,
+                    $options: "i"
+                }
+            }
         ];
     }
 
-    // If a category filter is provided, add it to the query
+    // Filter by category
     if (filters.category) {
         query.category = filters.category;
     }
@@ -164,7 +240,7 @@ const getProjectProgress = async (projectId) => {
         project: projectId
     });
 
-    // Count completed tasks belonging to this project
+    // Count completed tasks
     const completedTasks = await Task.countDocuments({
         project: projectId,
         status: "completed"
