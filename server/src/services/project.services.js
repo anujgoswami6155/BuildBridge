@@ -10,13 +10,20 @@ const createProject = async (projectData, userId) => {
         ...projectData,
         owner: userId
     });
+
     return await project.save();
 };
 
+
 // Update an existing project by its ID
 const updateProject = async (projectId, projectData) => {
+
     // Find the project by ID and update it
-    const project = await Project.findByIdAndUpdate(projectId, projectData, { new: true });
+    const project = await Project.findByIdAndUpdate(
+        projectId,
+        projectData,
+        { new: true }
+    );
 
     if (!project) {
         throw new Error("Project not found");
@@ -25,8 +32,10 @@ const updateProject = async (projectId, projectData) => {
     return project;
 };
 
+
 // Get a project by its ID
 const getProject = async (projectId) => {
+
     // Find the project by ID
     const project = await Project.findById(projectId).exec();
 
@@ -37,18 +46,21 @@ const getProject = async (projectId) => {
     return project;
 };
 
+
 // Get all projects with optional filters
 const getProjects = async (filters) => {
+
     // Build the query object based on filters
     const query = {};
 
-    // If a search term is provided, use it to filter projects by title, description, required skills, or tech stack
+    // If a search term is provided, search across
+    // title, description, required skills, and technologies
     if (filters.search) {
         query.$or = [
             { title: { $regex: filters.search, $options: "i" } },
             { description: { $regex: filters.search, $options: "i" } },
             { requiredSkills: { $regex: filters.search, $options: "i" } },
-            { techStack: { $regex: filters.search, $options: "i" } }
+            { technologies: { $regex: filters.search, $options: "i" } }
         ];
     }
 
@@ -60,13 +72,17 @@ const getProjects = async (filters) => {
     return await Project.find(query).exec();
 };
 
+
+// Remove a team member from a project
 const removeMember = async (projectId, userId) => {
+
     const project = await Project.findById(projectId).exec();
 
     if (!project) {
         throw new Error("Project not found");
     }
 
+    // Project owner cannot be removed
     if (project.owner.toString() === userId.toString()) {
         throw new Error("Project owner cannot be removed");
     }
@@ -86,13 +102,17 @@ const removeMember = async (projectId, userId) => {
     return await project.save();
 };
 
+
+// Leave a project
 const leaveProject = async (projectId, userId) => {
+
     const project = await Project.findById(projectId).exec();
 
     if (!project) {
         throw new Error("Project not found");
     }
 
+    // Project owner cannot leave
     if (project.owner.toString() === userId.toString()) {
         throw new Error("Project owner cannot leave the project");
     }
@@ -112,7 +132,10 @@ const leaveProject = async (projectId, userId) => {
     return await project.save();
 };
 
+
+// Get project workspace
 const getWorkspace = async (projectId) => {
+
     const project = await Project.findById(projectId)
         .populate("owner", "name email")
         .populate("teamMembers", "name email")
@@ -125,17 +148,57 @@ const getWorkspace = async (projectId) => {
     return project;
 };
 
-const deleteProject = async (projectId) => {
+
+// Get project progress
+const getProjectProgress = async (projectId) => {
+
+    // First verify that the project exists
     const project = await Project.findById(projectId).exec();
 
     if (!project) {
         throw new Error("Project not found");
     }
 
+    // Count all tasks belonging to this project
+    const totalTasks = await Task.countDocuments({
+        project: projectId
+    });
+
+    // Count completed tasks belonging to this project
+    const completedTasks = await Task.countDocuments({
+        project: projectId,
+        status: "completed"
+    });
+
+    // Calculate progress percentage
+    const progress =
+        totalTasks === 0
+            ? 0
+            : Math.round((completedTasks / totalTasks) * 100);
+
+    return {
+        totalTasks,
+        completedTasks,
+        progress
+    };
+};
+
+
+// Delete a project and its associated data
+const deleteProject = async (projectId) => {
+
+    const project = await Project.findById(projectId).exec();
+
+    if (!project) {
+        throw new Error("Project not found");
+    }
+
+    // Delete associated applications
     await Application.deleteMany({
         project: projectId
     });
 
+    // Delete associated tasks
     await Task.deleteMany({
         project: projectId
     });
@@ -145,4 +208,15 @@ const deleteProject = async (projectId) => {
     return true;
 };
 
-export { createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace, deleteProject };
+
+export {
+    createProject,
+    updateProject,
+    getProject,
+    getProjects,
+    removeMember,
+    leaveProject,
+    getWorkspace,
+    getProjectProgress,
+    deleteProject
+};

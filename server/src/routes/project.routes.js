@@ -14,8 +14,10 @@ import {
     removeMemberController,
     leaveProjectController,
     getWorkspaceController,
-    deleteProjectController
+    deleteProjectController,
+    getProjectProgressController
 } from "../controllers/project.controller.js";
+
 
 // Create a new project
 projectRouter.post(
@@ -24,15 +26,15 @@ projectRouter.post(
     createProjectController
 );
 
-// Update an existing project
-projectRouter.put(
-    "/:projectId",
-    authMiddleware,
-    ownerCheckMiddleware,
-    updateProjectController
+
+// Get all projects
+projectRouter.get(
+    "/",
+    getProjectsController
 );
 
-// Get project workspace (members, tasks, etc.)
+
+// Get project workspace
 projectRouter.get(
     "/:projectId/workspace",
     authMiddleware,
@@ -40,16 +42,29 @@ projectRouter.get(
     getWorkspaceController
 );
 
+
+// Get project progress
+projectRouter.get(
+    "/:projectId/progress",
+    authMiddleware,
+    teamMemberMiddleware,
+    getProjectProgressController
+);
+
+
 // Get a specific project by ID
 projectRouter.get(
     "/:projectId",
     getProjectController
 );
 
-// Get all projects for the authenticated user
-projectRouter.get(
-    "/",
-    getProjectsController
+
+// Update an existing project
+projectRouter.put(
+    "/:projectId",
+    authMiddleware,
+    ownerCheckMiddleware,
+    updateProjectController
 );
 
 
@@ -60,6 +75,7 @@ projectRouter.delete(
     leaveProjectController
 );
 
+
 // Owner removes member
 projectRouter.delete(
     "/:projectId/members/:userId",
@@ -68,13 +84,14 @@ projectRouter.delete(
     removeMemberController
 );
 
-// Delete the Project
+
+// Delete the project
 projectRouter.delete(
     "/:projectId",
     authMiddleware,
     ownerCheckMiddleware,
-    deleteProjectController   
-)
+    deleteProjectController
+);
 
 
 export default projectRouter;

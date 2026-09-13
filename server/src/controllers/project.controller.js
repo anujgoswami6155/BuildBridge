@@ -1,4 +1,15 @@
-import {createProject, updateProject, getProject, getProjects, removeMember, leaveProject, getWorkspace, deleteProject} from "../services/project.services.js";
+import {
+    createProject,
+    updateProject,
+    getProject,
+    getProjects,
+    removeMember,
+    leaveProject,
+    getWorkspace,
+    deleteProject,
+    getProjectProgress
+} from "../services/project.services.js";
+
 
 const createProjectController = async (req, res) => {
     try {
@@ -14,6 +25,7 @@ const createProjectController = async (req, res) => {
         });
     }
 };
+
 
 const updateProjectController = async (req, res) => {
     try {
@@ -31,6 +43,7 @@ const updateProjectController = async (req, res) => {
     }
 };
 
+
 const getProjectController = async (req, res) => {
     try {
         const projectId = req.params.projectId;
@@ -47,6 +60,7 @@ const getProjectController = async (req, res) => {
     }
 };
 
+
 const getProjectsController = async (req, res) => {
     try {
         const filters = req.query;
@@ -61,6 +75,7 @@ const getProjectsController = async (req, res) => {
         });
     }
 };
+
 
 const removeMemberController = async (req, res) => {
     try {
@@ -79,6 +94,7 @@ const removeMemberController = async (req, res) => {
     }
 };
 
+
 const leaveProjectController = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -96,6 +112,7 @@ const leaveProjectController = async (req, res) => {
     }
 };
 
+
 const getWorkspaceController = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -109,6 +126,23 @@ const getWorkspaceController = async (req, res) => {
         });
     }
 };
+
+
+const getProjectProgressController = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        const progress = await getProjectProgress(projectId);
+
+        return res.status(200).json(progress);
+
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+};
+
 
 const deleteProjectController = async (req, res) => {
     try {
@@ -126,4 +160,15 @@ const deleteProjectController = async (req, res) => {
     }
 };
 
-export { createProjectController, updateProjectController, getProjectController, getProjectsController, removeMemberController, leaveProjectController, getWorkspaceController, deleteProjectController };
+
+export {
+    createProjectController,
+    updateProjectController,
+    getProjectController,
+    getProjectsController,
+    removeMemberController,
+    leaveProjectController,
+    getWorkspaceController,
+    getProjectProgressController,
+    deleteProjectController
+};
