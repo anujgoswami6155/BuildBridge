@@ -1,6 +1,7 @@
 import Project from "../models/Project.models.js";
 import Application from "../models/Application.models.js";
 import Task from "../models/Task.models.js";
+import Comment from "../models/Comment.models.js";
 
 // Create a new project
 const createProject = async (projectData, userId) => {
@@ -292,6 +293,11 @@ const deleteProject = async (projectId) => {
 
     // Delete associated applications
     await Application.deleteMany({
+        project: projectId
+    });
+
+    // Delete associated comments
+    await Comment.deleteMany({
         project: projectId
     });
 
