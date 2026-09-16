@@ -2,18 +2,39 @@ import Project from "../models/Project.models.js";
 import Application from "../models/Application.models.js";
 import Task from "../models/Task.models.js";
 
-
-// Create a new project and associate it with the user
+// Create a new project
 const createProject = async (projectData, userId) => {
 
+    const {
+        title,
+        description,
+        category,
+        requiredSkills,
+        techStack,
+        resources,
+        teamSize,
+        recruitmentStatus
+    } = projectData;
+
     const project = new Project({
-        ...projectData,
-        owner: userId
+        title,
+        description,
+        category,
+        requiredSkills,
+        techStack,
+        resources,
+        teamSize,
+        recruitmentStatus,
+
+        // Always use the authenticated user
+        owner: userId,
+
+        // A newly created project starts with no members
+        teamMembers: []
     });
 
     return await project.save();
 };
-
 
 // Update an existing project by its ID
 const updateProject = async (projectId, projectData) => {
