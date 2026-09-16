@@ -16,6 +16,11 @@ const applyToProject = async (projectId, userId) => {
         throw new Error("Recruitment for this project is closed.");
     }
 
+    // Check if the user is the owner of the project
+    if (project.owner.toString() === userId.toString()) {
+        throw new Error("Project owner cannot apply to their own project");
+    }
+
     // Check if the user has already applied
     const existingApplication = await Application.findOne({
         applicant: userId,
