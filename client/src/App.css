@@ -1,3 +1,68 @@
-#root {
+.app {
     min-height: 100vh;
+}
+
+.navbar {
+    width: 100%;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: #ffffff;
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.navbar-brand {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.navbar-links a {
+    color: #475569;
+    font-size: 15px;
+}
+
+.navbar-links a:hover {
+    color: #2563eb;
+}
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.navbar-login {
+    color: #475569;
+}
+
+.navbar-register {
+    padding: 9px 16px;
+    border-radius: 6px;
+    background-color: #2563eb;
+    color: white;
+}
+
+.navbar-register:hover {
+    background-color: #1d4ed8;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
 }
