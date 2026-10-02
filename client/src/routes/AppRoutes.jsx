@@ -1,7 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Layout from "../components/common/Layout";
+
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
+
+import ProtectedRoute from "./ProtectedRoute";
+
 
 function AppRoutes() {
     return (
@@ -11,6 +16,8 @@ function AppRoutes() {
 
                 <Routes>
 
+                    {/* Public Routes */}
+
                     <Route
                         path="/"
                         element={
@@ -19,35 +26,42 @@ function AppRoutes() {
                     />
 
                     <Route
-    path="/login"
-    element={<Login />}
-/>
-
-<Route
-    path="/register"
-    element={<Register />}
-/>
-
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <h1>Dashboard</h1>
-                        }
+                        path="/login"
+                        element={<Login />}
                     />
 
                     <Route
-                        path="/projects"
-                        element={
-                            <h1>Projects</h1>
-                        }
+                        path="/register"
+                        element={<Register />}
                     />
 
-                    <Route
-                        path="/profile"
-                        element={
-                            <h1>Profile</h1>
-                        }
-                    />
+
+                    {/* Protected Routes */}
+
+                    <Route element={<ProtectedRoute />}>
+
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <h1>Dashboard</h1>
+                            }
+                        />
+
+                        <Route
+                            path="/projects"
+                            element={
+                                <h1>Projects</h1>
+                            }
+                        />
+
+                        <Route
+                            path="/profile"
+                            element={
+                                <h1>Profile</h1>
+                            }
+                        />
+
+                    </Route>
 
                 </Routes>
 
