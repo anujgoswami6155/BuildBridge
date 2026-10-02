@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../components/common/Layout";
 import Login from "../pages/auth/Login";
+import Register from "../pages/auth/Register";
 
 function AppRoutes() {
     return (
@@ -22,12 +23,10 @@ function AppRoutes() {
     element={<Login />}
 />
 
-                    <Route
-                        path="/register"
-                        element={
-                            <h1>Register Page</h1>
-                        }
-                    />
+<Route
+    path="/register"
+    element={<Register />}
+/>
 
                     <Route
                         path="/dashboard"
