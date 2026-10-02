@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../components/common/Layout";
+import Login from "../pages/auth/Login";
 
 function AppRoutes() {
     return (
@@ -17,11 +18,9 @@ function AppRoutes() {
                     />
 
                     <Route
-                        path="/login"
-                        element={
-                            <h1>Login Page</h1>
-                        }
-                    />
+    path="/login"
+    element={<Login />}
+/>
 
                     <Route
                         path="/register"
