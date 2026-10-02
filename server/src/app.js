@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+
 import connectDB from "./config/db.js";
 import authrouter from "./routes/auth.routes.js";
 import projectRouter from "./routes/project.routes.js";
@@ -18,8 +20,17 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-//JSON Body parsing
+// JSON Body parsing
 app.use(express.json());
+
+// Enable CORS for the React frontend
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allowedHeaders: ["Content-Type", "Authorization"]
+    })
+);
 
 // Register route
 //If a request comes to "/", execute this function
