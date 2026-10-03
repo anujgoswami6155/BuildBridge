@@ -8,6 +8,7 @@ import Register from "../pages/auth/Register";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Dashboard from "../pages/dashboard/Dashboard";
+import Projects from "../pages/projects/Projects";
 
 
 function AppRoutes() {
@@ -52,7 +53,7 @@ function AppRoutes() {
                         <Route
                             path="/projects"
                             element={
-                                <h1>Projects</h1>
+                                <Projects />
                             }
                         />
 
