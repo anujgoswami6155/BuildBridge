@@ -7,6 +7,8 @@ import Register from "../pages/auth/Register";
 
 import ProtectedRoute from "./ProtectedRoute";
 
+import Dashboard from "../pages/dashboard/Dashboard";
+
 
 function AppRoutes() {
     return (
@@ -43,7 +45,7 @@ function AppRoutes() {
                         <Route
                             path="/dashboard"
                             element={
-                                <h1>Dashboard</h1>
+                                <Dashboard />
                             }
                         />
 
