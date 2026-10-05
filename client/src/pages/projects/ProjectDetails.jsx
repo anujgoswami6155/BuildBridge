@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getProject, deleteProject } from "../../services/project.service";
-
+import { applyToProject } from "../../services/application.service";
 import "./ProjectDetails.css";
 
 function ProjectDetails() {
@@ -12,6 +12,8 @@ function ProjectDetails() {
 
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [applicationLoading, setApplicationLoading] = useState(false);
+    const [applicationStatus, setApplicationStatus] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -64,6 +66,33 @@ function ProjectDetails() {
     }
 };
 
+const handleApply = async () => {
+    setApplicationLoading(true);
+    setError("");
+    setApplicationStatus("");
+
+    try {
+        await applyToProject(projectId);
+
+        setApplicationStatus(
+            "Application submitted successfully."
+        );
+    } catch (error) {
+        console.error(
+            "Failed to apply to project:",
+            error.response?.data || error.message
+        );
+
+        setError(
+            error.response?.data?.message ||
+            "Failed to submit application."
+        );
+    } finally {
+        setApplicationLoading(false);
+    }
+};
+
+
     if (loading) {
         return (
             <div className="project-details-state">
@@ -85,7 +114,9 @@ function ProjectDetails() {
     }
 
     const isOwner =
-        user && project?.owner?._id === user._id;
+    user &&
+    project?.owner &&
+    String(project.owner._id) === String(user._id);
 
     return (
         <div className="project-details-page">
@@ -145,23 +176,41 @@ function ProjectDetails() {
     </button>
 )}
 
-                    <button
-                        className="apply-button"
-                        disabled={
-                            project.recruitmentStatus !== "open" ||
-                            isOwner
-                        }
-                    >
-                        {isOwner
-                            ? "You own this project"
-                            : project.recruitmentStatus === "open"
-                                ? "Apply to Join"
-                                : "Recruitment Closed"}
-                    </button>
+                    {isOwner ? (
+    <button
+        className="apply-button"
+        disabled
+    >
+        You own this project
+    </button>
+) : project.recruitmentStatus !== "open" ? (
+    <button
+        className="apply-button"
+        disabled
+    >
+        Recruitment Closed
+    </button>
+) : (
+    <button
+        className="apply-button"
+        onClick={handleApply}
+        disabled={applicationLoading}
+    >
+        {applicationLoading
+            ? "Applying..."
+            : "Apply to Join"}
+    </button>
+)}
 
                 </div>
 
             </section>
+            
+            {applicationStatus && (
+    <div className="application-success-message">
+        {applicationStatus}
+    </div>
+)}
 
             {/* Required Skills */}
             <section className="project-details-card">

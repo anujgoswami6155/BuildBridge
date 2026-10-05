@@ -16,8 +16,7 @@ const loginUser = async (credentials) => {
 
 const getCurrentUser = async () => {
     const response = await api.get("/auth/me");
-
-    return response.data;
+    return response.data.user;
 };
 
 
