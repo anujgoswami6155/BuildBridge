@@ -10,7 +10,13 @@ const getProject = async (projectId) => {
     return response.data;
 };
 
+const createProject = async (projectData) => {
+    const response = await api.post("/projects", projectData);
+    return response.data;
+};
+
 export {
     getProjects,
-    getProject
+    getProject,
+    createProject
 };
