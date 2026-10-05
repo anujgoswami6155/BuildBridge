@@ -9,6 +9,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import Dashboard from "../pages/dashboard/Dashboard";
 import Projects from "../pages/projects/Projects";
+import ProjectDetails from "../pages/projects/ProjectDetails";
 
 
 function AppRoutes() {
@@ -56,6 +57,11 @@ function AppRoutes() {
                                 <Projects />
                             }
                         />
+
+                        <Route
+    path="/projects/:projectId"
+    element={<ProjectDetails />}
+/>
 
                         <Route
                             path="/profile"

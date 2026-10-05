@@ -5,6 +5,12 @@ const getProjects = async () => {
     return response.data;
 };
 
+const getProject = async (projectId) => {
+    const response = await api.get(`/projects/${projectId}`);
+    return response.data;
+};
+
 export {
-    getProjects
+    getProjects,
+    getProject
 };
