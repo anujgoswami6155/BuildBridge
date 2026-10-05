@@ -13,6 +13,8 @@ import ProjectDetails from "../pages/projects/ProjectDetails";
 import CreateProject from "../pages/projects/CreateProject";
 import EditProject from "../pages/projects/EditProject";
 
+import Profile from "../pages/profile/Profile";
+
 function AppRoutes() {
     return (
         <BrowserRouter>
@@ -75,12 +77,7 @@ function AppRoutes() {
     element={<CreateProject />}
     />
 
-                        <Route
-                            path="/profile"
-                            element={
-                                <h1>Profile</h1>
-                            }
-                        />
+                        <Route path="/profile" element={<Profile />} />
 
                     </Route>
 
