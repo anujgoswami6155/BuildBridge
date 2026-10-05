@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
+import { useAuth } from "../../context/AuthContext";
 import { getProject } from "../../services/project.service";
 
 import "./ProjectDetails.css";
 
 function ProjectDetails() {
     const { projectId } = useParams();
+    const { user } = useAuth();
 
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -48,12 +49,16 @@ function ProjectDetails() {
         return (
             <div className="project-details-state project-details-error">
                 <p>{error}</p>
+
                 <Link to="/projects">
                     Back to Projects
                 </Link>
             </div>
         );
     }
+
+    const isOwner =
+        user && project?.owner?._id === user._id;
 
     return (
         <div className="project-details-page">
@@ -71,6 +76,7 @@ function ProjectDetails() {
 
                 <div>
                     <div className="project-details-meta">
+
                         <span className="project-details-category">
                             {project.category}
                         </span>
@@ -82,6 +88,7 @@ function ProjectDetails() {
                         >
                             ● {project.recruitmentStatus}
                         </span>
+
                     </div>
 
                     <h1>{project.title}</h1>
@@ -91,38 +98,58 @@ function ProjectDetails() {
                     </p>
                 </div>
 
-                <button
-                    className="apply-button"
-                    disabled={
-                        project.recruitmentStatus !== "open"
-                    }
-                >
-                    {project.recruitmentStatus === "open"
-                        ? "Apply to Join"
-                        : "Recruitment Closed"}
-                </button>
+                <div className="project-details-actions">
+
+                    {isOwner && (
+                        <Link
+                            to={`/projects/${projectId}/edit`}
+                            className="edit-project-button"
+                        >
+                            Edit Project
+                        </Link>
+                    )}
+
+                    <button
+                        className="apply-button"
+                        disabled={
+                            project.recruitmentStatus !== "open" ||
+                            isOwner
+                        }
+                    >
+                        {isOwner
+                            ? "You own this project"
+                            : project.recruitmentStatus === "open"
+                                ? "Apply to Join"
+                                : "Recruitment Closed"}
+                    </button>
+
+                </div>
 
             </section>
 
             {/* Required Skills */}
             <section className="project-details-card">
+
                 <div className="section-heading">
                     <h2>Required Skills</h2>
                 </div>
 
                 {project.requiredSkills.length > 0 ? (
                     <div className="details-skills">
+
                         {project.requiredSkills.map((skill) => (
                             <span key={skill}>
                                 {skill}
                             </span>
                         ))}
+
                     </div>
                 ) : (
                     <p className="details-muted">
                         No specific skills listed.
                     </p>
                 )}
+
             </section>
 
             {/* Project Information */}
@@ -136,6 +163,7 @@ function ProjectDetails() {
 
                     <div>
                         <span>Team Size</span>
+
                         <strong>
                             👥 {project.teamSize}
                         </strong>
@@ -143,6 +171,7 @@ function ProjectDetails() {
 
                     <div>
                         <span>Current Members</span>
+
                         <strong>
                             👤 {project.teamMembers.length}
                         </strong>
@@ -150,6 +179,7 @@ function ProjectDetails() {
 
                     <div>
                         <span>Category</span>
+
                         <strong>
                             {project.category}
                         </strong>
@@ -157,6 +187,7 @@ function ProjectDetails() {
 
                     <div>
                         <span>Recruitment</span>
+
                         <strong className="capitalize">
                             {project.recruitmentStatus}
                         </strong>
@@ -175,11 +206,13 @@ function ProjectDetails() {
 
                 {project.techStack.length > 0 ? (
                     <div className="details-skills">
+
                         {project.techStack.map((technology) => (
                             <span key={technology}>
                                 {technology}
                             </span>
                         ))}
+
                     </div>
                 ) : (
                     <p className="details-muted">
@@ -213,6 +246,7 @@ function ProjectDetails() {
                                 </div>
 
                                 <div>
+
                                     <strong>
                                         {typeof member === "object"
                                             ? member.name
@@ -225,6 +259,7 @@ function ProjectDetails() {
                                                 {member.email}
                                             </span>
                                         )}
+
                                 </div>
                             </div>
                         ))}
@@ -258,6 +293,7 @@ function ProjectDetails() {
                                 <span>🔗</span>
 
                                 <div>
+
                                     <strong>
                                         {resource.title}
                                     </strong>
@@ -265,6 +301,7 @@ function ProjectDetails() {
                                     <span>
                                         {resource.url}
                                     </span>
+
                                 </div>
                             </a>
                         ))}
