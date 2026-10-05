@@ -24,9 +24,18 @@ const updateProject = async (projectId, projectData) => {
     return response.data;
 };
 
+const deleteProject = async (projectId) => {
+    const response = await api.delete(
+        `/projects/${projectId}`
+    );
+
+    return response.data;
+};
+
 export {
     getProjects,
     getProject,
     createProject,
-    updateProject
+    updateProject,
+    deleteProject
 };

@@ -109,6 +109,30 @@
     transform: translateY(-1px);
 }
 
+.delete-project-button {
+    padding: 12px 20px;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.2s ease;
+}
+
+.delete-project-button:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.delete-project-button:active {
+    transform: translateY(0);
+}
+
 .apply-button {
     padding: 12px 20px;
     border: none;
@@ -337,6 +361,7 @@
     }
 
     .edit-project-button,
+    .delete-project-button,
     .apply-button {
         width: 100%;
         box-sizing: border-box;

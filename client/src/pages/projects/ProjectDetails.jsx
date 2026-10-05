@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getProject } from "../../services/project.service";
+import { getProject, deleteProject } from "../../services/project.service";
 
 import "./ProjectDetails.css";
 
 function ProjectDetails() {
     const { projectId } = useParams();
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -36,6 +37,32 @@ function ProjectDetails() {
 
         fetchProject();
     }, [projectId]);
+
+    const handleDeleteProject = async () => {
+    const confirmed = window.confirm(
+        "Are you sure you want to delete this project? This action cannot be undone."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        await deleteProject(projectId);
+
+        navigate("/projects");
+    } catch (error) {
+        console.error(
+            "Failed to delete project:",
+            error.response?.data || error.message
+        );
+
+        setError(
+            error.response?.data?.message ||
+            "Failed to delete project."
+        );
+    }
+};
 
     if (loading) {
         return (
@@ -108,6 +135,15 @@ function ProjectDetails() {
                             Edit Project
                         </Link>
                     )}
+
+                    {isOwner && (
+    <button
+        className="delete-project-button"
+        onClick={handleDeleteProject}
+    >
+        Delete Project
+    </button>
+)}
 
                     <button
                         className="apply-button"
