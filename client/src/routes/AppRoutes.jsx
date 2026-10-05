@@ -15,6 +15,8 @@ import EditProject from "../pages/projects/EditProject";
 
 import Profile from "../pages/profile/Profile";
 
+import Tasks from "../pages/tasks/Tasks";
+
 function AppRoutes() {
     return (
         <BrowserRouter>
@@ -78,6 +80,11 @@ function AppRoutes() {
     />
 
                         <Route path="/profile" element={<Profile />} />
+
+                        <Route
+    path="/projects/:projectId/tasks"
+    element={<Tasks />}
+/>
 
                     </Route>
 

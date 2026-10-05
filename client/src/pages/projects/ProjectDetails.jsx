@@ -331,6 +331,12 @@ function ProjectDetails() {
 
                 <div className="project-details-actions">
 
+                    <Link
+    to={`/projects/${projectId}/tasks`}
+    className="tasks-button"
+>
+    View Tasks
+</Link>
 
                     {isOwner && (
 
