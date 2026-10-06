@@ -5,7 +5,12 @@ function ProtectedRoute() {
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return (
+            <div className="page-loader">
+                <div className="spinner spinner-primary" style={{ width: "32px", height: "32px", borderWidth: "3px" }}></div>
+                <p>Authenticating...</p>
+            </div>
+        );
     }
 
     if (!isAuthenticated) {

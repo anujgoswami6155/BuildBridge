@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-
-import {
-    getProject,
-    updateProject
-} from "../../services/project.service";
-
-import "./EditProject.css";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { getProject, updateProject } from "../../services/project.service";
+import { 
+    ArrowLeft, 
+    Plus, 
+    X, 
+    Trash2, 
+    AlertCircle, 
+    Save 
+} from "lucide-react";
+import "./CreateProject.css";
 
 function EditProject() {
     const { projectId } = useParams();
@@ -39,7 +42,6 @@ function EditProject() {
         const fetchProject = async () => {
             try {
                 const data = await getProject(projectId);
-
                 setFormData({
                     title: data.title || "",
                     description: data.description || "",
@@ -47,19 +49,14 @@ function EditProject() {
                     requiredSkills: data.requiredSkills || [],
                     techStack: data.techStack || [],
                     teamSize: data.teamSize || 2,
-                    recruitmentStatus:
-                        data.recruitmentStatus || "open",
+                    recruitmentStatus: data.recruitmentStatus || "open",
                     resources: data.resources || []
                 });
-            } catch (error) {
-                console.error(
-                    "Failed to fetch project:",
-                    error.response?.data || error.message
-                );
-
+            } catch (err) {
+                console.error("Failed to fetch project:", err);
                 setError(
-                    error.response?.data?.message ||
-                    "Failed to load project."
+                    err.response?.data?.message ||
+                    "Failed to load project details."
                 );
             } finally {
                 setLoading(false);
@@ -71,19 +68,14 @@ function EditProject() {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-
         setFormData((previous) => ({
             ...previous,
-            [name]:
-                name === "teamSize"
-                    ? Number(value)
-                    : value
+            [name]: name === "teamSize" ? Number(value) : value
         }));
     };
 
     const addSkill = () => {
         const skill = skillInput.trim();
-
         if (!skill) return;
 
         if (formData.requiredSkills.includes(skill)) {
@@ -93,28 +85,22 @@ function EditProject() {
 
         setFormData((previous) => ({
             ...previous,
-            requiredSkills: [
-                ...previous.requiredSkills,
-                skill
-            ]
+            requiredSkills: [...previous.requiredSkills, skill]
         }));
-
         setSkillInput("");
     };
 
     const removeSkill = (skillToRemove) => {
         setFormData((previous) => ({
             ...previous,
-            requiredSkills:
-                previous.requiredSkills.filter(
-                    (skill) => skill !== skillToRemove
-                )
+            requiredSkills: previous.requiredSkills.filter(
+                (skill) => skill !== skillToRemove
+            )
         }));
     };
 
     const addTechnology = () => {
         const technology = techInput.trim();
-
         if (!technology) return;
 
         if (formData.techStack.includes(technology)) {
@@ -124,29 +110,22 @@ function EditProject() {
 
         setFormData((previous) => ({
             ...previous,
-            techStack: [
-                ...previous.techStack,
-                technology
-            ]
+            techStack: [...previous.techStack, technology]
         }));
-
         setTechInput("");
     };
 
-    const removeTechnology = (technologyToRemove) => {
+    const removeTechnology = (techToRemove) => {
         setFormData((previous) => ({
             ...previous,
-            techStack:
-                previous.techStack.filter(
-                    (technology) =>
-                        technology !== technologyToRemove
-                )
+            techStack: previous.techStack.filter(
+                (tech) => tech !== techToRemove
+            )
         }));
     };
 
     const handleResourceChange = (event) => {
         const { name, value } = event.target;
-
         setResource((previous) => ({
             ...previous,
             [name]: value
@@ -156,58 +135,36 @@ function EditProject() {
     const addResource = () => {
         const title = resource.title.trim();
         const url = resource.url.trim();
-
         if (!title || !url) return;
 
         setFormData((previous) => ({
             ...previous,
-            resources: [
-                ...previous.resources,
-                {
-                    title,
-                    url
-                }
-            ]
+            resources: [...previous.resources, { title, url }]
         }));
-
-        setResource({
-            title: "",
-            url: ""
-        });
+        setResource({ title: "", url: "" });
     };
 
     const removeResource = (indexToRemove) => {
         setFormData((previous) => ({
             ...previous,
-            resources:
-                previous.resources.filter(
-                    (_, index) =>
-                        index !== indexToRemove
-                )
+            resources: previous.resources.filter(
+                (_, index) => index !== indexToRemove
+            )
         }));
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         setError("");
         setSaving(true);
 
         try {
-            await updateProject(
-                projectId,
-                formData
-            );
-
+            await updateProject(projectId, formData);
             navigate(`/projects/${projectId}`);
-        } catch (error) {
-            console.error(
-                "Failed to update project:",
-                error.response?.data || error.message
-            );
-
+        } catch (err) {
+            console.error("Failed to update project:", err);
             setError(
-                error.response?.data?.message ||
+                err.response?.data?.message ||
                 "Failed to update project."
             );
         } finally {
@@ -217,74 +174,43 @@ function EditProject() {
 
     if (loading) {
         return (
-            <div className="edit-project-state">
-                <p>Loading project...</p>
-            </div>
-        );
-    }
-
-    if (error && !formData.title) {
-        return (
-            <div className="edit-project-state edit-project-error">
-                <p>{error}</p>
-
-                <button
-                    type="button"
-                    onClick={() =>
-                        navigate(
-                            `/projects/${projectId}`
-                        )
-                    }
-                >
-                    Back to Project
-                </button>
+            <div className="page-loader">
+                <div className="spinner spinner-primary" style={{ width: "32px", height: "32px", borderWidth: "3px" }}></div>
+                <p>Loading project settings...</p>
             </div>
         );
     }
 
     return (
-        <div className="edit-project-page">
+        <div className="project-form-page">
+            <Link to={`/projects/${projectId}`} className="back-to-projects">
+                <ArrowLeft size={16} />
+                <span>Back to Project</span>
+            </Link>
 
-            <div className="edit-project-header">
-                <p className="edit-project-label">
-                    EDIT PROJECT
-                </p>
-
-                <h1>Update your project</h1>
-
-                <p>
-                    Keep your project information accurate so
-                    collaborators know what you're building.
-                </p>
+            <div className="form-header-section">
+                <p className="form-eyebrow">EDIT PROJECT</p>
+                <h1>Update Project Details</h1>
+                <p>Keep your project information accurate and up-to-date for your team and prospective applicants.</p>
             </div>
 
             {error && (
-                <div className="edit-project-error">
-                    {error}
+                <div className="auth-error" style={{ marginBottom: "24px" }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{error}</span>
                 </div>
             )}
 
-            <form
-                className="edit-project-form"
-                onSubmit={handleSubmit}
-            >
-
-                {/* Basic Information */}
-
-                <section className="edit-project-card">
-
-                    <div className="edit-section-heading">
-                        <h2>Basic Information</h2>
-                        <p>
-                            Update the core details of your project.
-                        </p>
+            <form onSubmit={handleSubmit} className="project-card-form">
+                {/* Basic Info */}
+                <div className="form-section-card">
+                    <div className="form-section-heading">
+                        <h2>1. Project Overview</h2>
+                        <p>Core metadata and description.</p>
                     </div>
 
-                    <div className="form-field">
-                        <label htmlFor="title">
-                            Project Title
-                        </label>
-
+                    <div className="field-group">
+                        <label htmlFor="title">Project Title</label>
                         <input
                             id="title"
                             name="title"
@@ -295,28 +221,21 @@ function EditProject() {
                         />
                     </div>
 
-                    <div className="form-field">
-                        <label htmlFor="description">
-                            Description
-                        </label>
-
+                    <div className="field-group">
+                        <label htmlFor="description">Description & Scope</label>
                         <textarea
                             id="description"
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
-                            rows="5"
+                            rows={4}
                             required
                         />
                     </div>
 
-                    <div className="form-row">
-
-                        <div className="form-field">
-                            <label htmlFor="category">
-                                Category
-                            </label>
-
+                    <div className="field-grid-2">
+                        <div className="field-group">
+                            <label htmlFor="category">Category</label>
                             <input
                                 id="category"
                                 name="category"
@@ -327,202 +246,134 @@ function EditProject() {
                             />
                         </div>
 
-                        <div className="form-field">
-                            <label htmlFor="teamSize">
-                                Team Size
-                            </label>
-
+                        <div className="field-group">
+                            <label htmlFor="teamSize">Target Team Size</label>
                             <input
                                 id="teamSize"
                                 name="teamSize"
                                 type="number"
                                 min="1"
+                                max="50"
                                 value={formData.teamSize}
                                 onChange={handleChange}
                                 required
                             />
                         </div>
+                    </div>
+                </div>
 
+                {/* Skills */}
+                <div className="form-section-card">
+                    <div className="form-section-heading">
+                        <h2>2. Desired Skills</h2>
+                        <p>Update competencies you want in prospective collaborators.</p>
                     </div>
 
-                </section>
-
-                {/* Required Skills */}
-
-                <section className="edit-project-card">
-
-                    <div className="edit-section-heading">
-                        <h2>Required Skills</h2>
-                        <p>
-                            Update the skills you're looking for.
-                        </p>
-                    </div>
-
-                    <div className="tag-input-row">
+                    <div className="tag-entry-row">
                         <input
                             type="text"
                             value={skillInput}
-                            onChange={(event) =>
-                                setSkillInput(event.target.value)
-                            }
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                    event.preventDefault();
+                            onChange={(e) => setSkillInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
                                     addSkill();
                                 }
                             }}
-                            placeholder="e.g. React"
+                            placeholder="Add a skill (press Enter)"
                         />
-
-                        <button
-                            type="button"
-                            onClick={addSkill}
-                        >
-                            Add
+                        <button type="button" onClick={addSkill} className="btn-tag-add">
+                            <Plus size={14} />
+                            <span>Add</span>
                         </button>
                     </div>
 
-                    <div className="tag-list">
-                        {formData.requiredSkills.map(
-                            (skill) => (
-                                <span key={skill}>
-                                    {skill}
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            removeSkill(
-                                                skill
-                                            )
-                                        }
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            )
-                        )}
+                    <div className="tags-display-container">
+                        {formData.requiredSkills.map((skill) => (
+                            <span key={skill} className="removable-tag">
+                                {skill}
+                                <button type="button" onClick={() => removeSkill(skill)}>
+                                    <X size={12} />
+                                </button>
+                            </span>
+                        ))}
                     </div>
-
-                </section>
+                </div>
 
                 {/* Tech Stack */}
-
-                <section className="edit-project-card">
-
-                    <div className="edit-section-heading">
-                        <h2>Tech Stack</h2>
-                        <p>
-                            Update the technologies used in
-                            the project.
-                        </p>
+                <div className="form-section-card">
+                    <div className="form-section-heading">
+                        <h2>3. Technology Stack</h2>
+                        <p>Technologies and tools used across this repository.</p>
                     </div>
 
-                    <div className="tag-input-row">
+                    <div className="tag-entry-row">
                         <input
                             type="text"
                             value={techInput}
-                            onChange={(event) =>
-                                setTechInput(event.target.value)
-                            }
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                    event.preventDefault();
+                            onChange={(e) => setTechInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
                                     addTechnology();
                                 }
                             }}
-                            placeholder="e.g. MongoDB"
+                            placeholder="Add a technology (press Enter)"
                         />
-
-                        <button
-                            type="button"
-                            onClick={addTechnology}
-                        >
-                            Add
+                        <button type="button" onClick={addTechnology} className="btn-tag-add">
+                            <Plus size={14} />
+                            <span>Add</span>
                         </button>
                     </div>
 
-                    <div className="tag-list">
-                        {formData.techStack.map(
-                            (technology) => (
-                                <span key={technology}>
-                                    {technology}
+                    <div className="tags-display-container">
+                        {formData.techStack.map((tech) => (
+                            <span key={tech} className="removable-tag">
+                                {tech}
+                                <button type="button" onClick={() => removeTechnology(tech)}>
+                                    <X size={12} />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            removeTechnology(
-                                                technology
-                                            )
-                                        }
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            )
-                        )}
+                {/* Recruitment Status */}
+                <div className="form-section-card">
+                    <div className="form-section-heading">
+                        <h2>4. Recruitment Settings</h2>
+                        <p>Toggle whether new applicants can submit applications.</p>
                     </div>
 
-                </section>
-
-                {/* Recruitment */}
-
-                <section className="edit-project-card">
-
-                    <div className="edit-section-heading">
-                        <h2>Recruitment</h2>
-                        <p>
-                            Control whether new members can
-                            apply to join.
-                        </p>
-                    </div>
-
-                    <div className="form-field">
-                        <label htmlFor="recruitmentStatus">
-                            Recruitment Status
-                        </label>
-
+                    <div className="field-group">
+                        <label htmlFor="recruitmentStatus">Recruitment Status</label>
                         <select
                             id="recruitmentStatus"
                             name="recruitmentStatus"
-                            value={
-                                formData.recruitmentStatus
-                            }
+                            value={formData.recruitmentStatus}
                             onChange={handleChange}
                         >
-                            <option value="open">
-                                Open — Accepting applications
-                            </option>
-
-                            <option value="closed">
-                                Closed — Not accepting
-                                applications
-                            </option>
+                            <option value="open">Open — Actively accepting applications</option>
+                            <option value="closed">Closed — Team is currently full</option>
                         </select>
                     </div>
-
-                </section>
+                </div>
 
                 {/* Resources */}
-
-                <section className="edit-project-card">
-
-                    <div className="edit-section-heading">
-                        <h2>Resources</h2>
-                        <p>
-                            Update useful project links.
-                        </p>
+                <div className="form-section-card">
+                    <div className="form-section-heading">
+                        <h2>5. Resources & Documentation</h2>
+                        <p>Manage external repository, design, and reference links.</p>
                     </div>
 
                     <div className="resource-input-grid">
-
                         <input
                             name="title"
                             type="text"
                             value={resource.title}
                             onChange={handleResourceChange}
-                            placeholder="Resource title"
+                            placeholder="Resource label"
                         />
-
                         <input
                             name="url"
                             type="url"
@@ -530,85 +381,62 @@ function EditProject() {
                             onChange={handleResourceChange}
                             placeholder="https://..."
                         />
-
-                        <button
-                            type="button"
-                            onClick={addResource}
-                        >
-                            Add Resource
+                        <button type="button" onClick={addResource} className="btn-tag-add">
+                            <Plus size={14} />
+                            <span>Add Link</span>
                         </button>
-
                     </div>
 
                     {formData.resources.length > 0 && (
-                        <div className="resource-list">
-
-                            {formData.resources.map(
-                                (item, index) => (
-                                    <div
-                                        className="resource-item"
-                                        key={
-                                            item._id ||
-                                            `${item.title}-${index}`
-                                        }
-                                    >
-                                        <div>
-                                            <strong>
-                                                {item.title}
-                                            </strong>
-
-                                            <span>
-                                                {item.url}
-                                            </span>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                removeResource(
-                                                    index
-                                                )
-                                            }
-                                        >
-                                            Remove
-                                        </button>
+                        <div className="added-resources-list">
+                            {formData.resources.map((item, index) => (
+                                <div className="added-resource-row" key={`${item.title}-${index}`}>
+                                    <div className="added-resource-info">
+                                        <strong>{item.title}</strong>
+                                        <span>{item.url}</span>
                                     </div>
-                                )
-                            )}
-
+                                    <button
+                                        type="button"
+                                        onClick={() => removeResource(index)}
+                                        className="btn-remove-resource"
+                                        title="Remove resource"
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     )}
-
-                </section>
+                </div>
 
                 {/* Actions */}
-
-                <div className="edit-project-actions">
-
+                <div className="form-action-bar">
                     <button
                         type="button"
-                        className="cancel-button"
-                        onClick={() =>
-                            navigate(
-                                `/projects/${projectId}`
-                            )
-                        }
+                        className="btn-form-cancel"
+                        onClick={() => navigate(`/projects/${projectId}`)}
                     >
                         Cancel
                     </button>
 
                     <button
                         type="submit"
-                        className="submit-project-button"
+                        className="btn-form-submit"
                         disabled={saving}
                     >
-                        {saving
-                            ? "Saving Changes..."
-                            : "Save Changes"}
+                        {saving ? (
+                            <>
+                                <span className="spinner"></span>
+                                <span>Saving Changes...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save size={16} />
+                                <span>Save Changes</span>
+                            </>
+                        )}
                     </button>
-
                 </div>
-
             </form>
         </div>
     );

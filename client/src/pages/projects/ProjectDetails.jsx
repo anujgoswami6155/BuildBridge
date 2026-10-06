@@ -20,6 +20,25 @@ import {
     deleteComment
 } from "../../services/comment.service";
 
+import {
+    ArrowLeft,
+    KanbanSquare,
+    Edit3,
+    Trash2,
+    Send,
+    Users,
+    Code2,
+    Layers,
+    ExternalLink,
+    MessageSquare,
+    Clock,
+    Check,
+    X,
+    UserCheck,
+    AlertCircle,
+    CheckCircle2
+} from "lucide-react";
+
 import "./ProjectDetails.css";
 
 function ProjectDetails() {
@@ -31,38 +50,24 @@ function ProjectDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // ================================
     // Applications
-    // ================================
-
     const [applicationLoading, setApplicationLoading] = useState(false);
     const [applicationStatus, setApplicationStatus] = useState("");
     const [applicationError, setApplicationError] = useState("");
-
     const [applications, setApplications] = useState([]);
     const [applicationsLoading, setApplicationsLoading] = useState(false);
-    const [applicationActionLoading, setApplicationActionLoading] =
-        useState("");
+    const [applicationActionLoading, setApplicationActionLoading] = useState("");
 
-    // ================================
     // Comments
-    // ================================
-
     const [comments, setComments] = useState([]);
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [commentLoading, setCommentLoading] = useState(false);
-
     const [commentContent, setCommentContent] = useState("");
     const [commentError, setCommentError] = useState("");
     const [commentSuccess, setCommentSuccess] = useState("");
-
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editingCommentContent, setEditingCommentContent] = useState("");
     const [commentActionLoading, setCommentActionLoading] = useState("");
-
-    // ================================
-    // Fetch Project
-    // ================================
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -71,86 +76,47 @@ function ProjectDetails() {
                 setError("");
 
                 const data = await getProject(projectId);
-
                 setProject(data);
-
-                // ================================
-                // Fetch Applications
-                // ================================
 
                 const isProjectOwner =
                     user &&
                     data?.owner &&
-                    String(data.owner._id) === String(user._id);
+                    String(data.owner._id || data.owner) === String(user._id);
 
                 if (isProjectOwner) {
                     setApplicationsLoading(true);
-
                     try {
-                        const applicationData =
-                            await getApplications(projectId);
-
-                        setApplications(applicationData);
-                    } catch (applicationError) {
-                        console.error(
-                            "Failed to fetch applications:",
-                            applicationError.response?.data ||
-                                applicationError.message
-                        );
-
-                        setApplicationError(
-                            applicationError.response?.data?.message ||
-                                "Failed to load applications."
-                        );
+                        const appData = await getApplications(projectId);
+                        setApplications(appData);
+                    } catch (appErr) {
+                        console.error("Failed to load applications:", appErr);
                     } finally {
                         setApplicationsLoading(false);
                     }
                 }
 
-                // ================================
-                // Fetch Comments
-                // ================================
-
                 const isTeamMember =
                     user &&
                     data?.teamMembers?.some(
-                        (member) =>
-                            String(member?._id || member) ===
-                            String(user._id)
+                        (member) => String(member?._id || member) === String(user._id)
                     );
 
                 if (isProjectOwner || isTeamMember) {
                     setCommentsLoading(true);
-
                     try {
                         const commentData = await getComments(projectId);
-
-                        setComments(commentData.comments);
-                    } catch (commentFetchError) {
-                        console.error(
-                            "Failed to fetch comments:",
-                            commentFetchError.response?.data ||
-                                commentFetchError.message
-                        );
-
-                        setCommentError(
-                            commentFetchError.response?.data?.message ||
-                                "Failed to load comments."
-                        );
+                        setComments(commentData.comments || []);
+                    } catch (commErr) {
+                        console.error("Failed to load comments:", commErr);
                     } finally {
                         setCommentsLoading(false);
                     }
                 }
-            } catch (error) {
-                console.error(
-                    "Failed to fetch project:",
-                    error.response?.data ||
-                        error.message
-                );
-
+            } catch (err) {
+                console.error("Failed to fetch project:", err);
                 setError(
-                    error.response?.data?.message ||
-                        "Failed to load project."
+                    err.response?.data?.message ||
+                    "Project not found or failed to load."
                 );
             } finally {
                 setLoading(false);
@@ -160,40 +126,19 @@ function ProjectDetails() {
         fetchProject();
     }, [projectId, user]);
 
-    // ================================
-    // Project Delete
-    // ================================
-
     const handleDeleteProject = async () => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this project? This action cannot be undone."
         );
-
-        if (!confirmed) {
-            return;
-        }
+        if (!confirmed) return;
 
         try {
             await deleteProject(projectId);
-
             navigate("/projects");
-        } catch (error) {
-            console.error(
-                "Failed to delete project:",
-                error.response?.data ||
-                    error.message
-            );
-
-            setError(
-                error.response?.data?.message ||
-                    "Failed to delete project."
-            );
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to delete project.");
         }
     };
-
-    // ================================
-    // Apply
-    // ================================
 
     const handleApply = async () => {
         setApplicationLoading(true);
@@ -202,279 +147,116 @@ function ProjectDetails() {
 
         try {
             await applyToProject(projectId);
-
-            setApplicationStatus(
-                "Application submitted successfully."
-            );
-        } catch (error) {
-            console.error(
-                "Failed to apply to project:",
-                error.response?.data ||
-                    error.message
-            );
-
+            setApplicationStatus("Application submitted successfully! The owner has been notified.");
+        } catch (err) {
             setApplicationError(
-                error.response?.data?.message ||
-                    "Failed to submit application."
+                err.response?.data?.message || "Failed to submit application. Please try again."
             );
         } finally {
             setApplicationLoading(false);
         }
     };
 
-    // ================================
-    // Application Status
-    // ================================
-
-    const handleApplicationStatus = async (
-        applicationId,
-        status
-    ) => {
+    const handleApplicationStatus = async (applicationId, status) => {
         setApplicationActionLoading(applicationId);
         setApplicationError("");
 
         try {
-            await updateApplicationStatus(
-                applicationId,
-                status
-            );
+            await updateApplicationStatus(applicationId, status);
+            const updatedApps = await getApplications(projectId);
+            setApplications(updatedApps);
 
-            const updatedApplications =
-                await getApplications(projectId);
-
-            setApplications(updatedApplications);
-
-            const updatedProject =
-                await getProject(projectId);
-
+            const updatedProject = await getProject(projectId);
             setProject(updatedProject);
-        } catch (error) {
-            console.error(
-                "Failed to update application:",
-                error.response?.data ||
-                    error.message
-            );
-
+        } catch (err) {
             setApplicationError(
-                error.response?.data?.message ||
-                    "Failed to update application."
+                err.response?.data?.message || "Failed to update application status."
             );
         } finally {
             setApplicationActionLoading("");
         }
     };
 
-    // ================================
-    // Create Comment
-    // ================================
-
     const handleCreateComment = async (event) => {
         event.preventDefault();
-
-        const trimmedContent = commentContent.trim();
-
-        if (!trimmedContent) {
-            setCommentError("Comment content is required.");
-            return;
-        }
-
-        if (trimmedContent.length > 500) {
-            setCommentError(
-                "Comment cannot exceed 500 characters."
-            );
-            return;
-        }
+        const trimmed = commentContent.trim();
+        if (!trimmed) return;
 
         try {
             setCommentLoading(true);
             setCommentError("");
             setCommentSuccess("");
 
-            await createComment(
-                projectId,
-                trimmedContent
-            );
-
-            const updatedComments =
-                await getComments(projectId);
-
-            setComments(updatedComments.comments);
-
+            await createComment(projectId, trimmed);
+            const updatedComments = await getComments(projectId);
+            setComments(updatedComments.comments || []);
             setCommentContent("");
-            setCommentSuccess(
-                "Comment added successfully."
-            );
-        } catch (error) {
-            console.error(
-                "Failed to create comment:",
-                error.response?.data ||
-                    error.message
-            );
-
-            setCommentError(
-                error.response?.data?.message ||
-                    "Failed to add comment."
-            );
+            setCommentSuccess("Comment posted.");
+        } catch (err) {
+            setCommentError(err.response?.data?.message || "Failed to post comment.");
         } finally {
             setCommentLoading(false);
         }
     };
 
-    // ================================
-    // Start Edit Comment
-    // ================================
-
-    const startEditingComment = (comment) => {
-        setEditingCommentId(comment._id);
-        setEditingCommentContent(comment.content);
-        setCommentError("");
-        setCommentSuccess("");
-    };
-
-    // ================================
-    // Cancel Edit Comment
-    // ================================
-
-    const cancelEditingComment = () => {
-        setEditingCommentId(null);
-        setEditingCommentContent("");
-    };
-
-    // ================================
-    // Update Comment
-    // ================================
-
-    const handleUpdateComment = async (
-        event,
-        commentId
-    ) => {
+    const handleUpdateComment = async (event, commentId) => {
         event.preventDefault();
-
-        const trimmedContent =
-            editingCommentContent.trim();
-
-        if (!trimmedContent) {
-            setCommentError(
-                "Comment content is required."
-            );
-            return;
-        }
-
-        if (trimmedContent.length > 500) {
-            setCommentError(
-                "Comment cannot exceed 500 characters."
-            );
-            return;
-        }
+        const trimmed = editingCommentContent.trim();
+        if (!trimmed) return;
 
         try {
             setCommentActionLoading(commentId);
             setCommentError("");
-            setCommentSuccess("");
-
-            await updateComment(
-                commentId,
-                trimmedContent
-            );
-
-            const updatedComments =
-                await getComments(projectId);
-
-            setComments(updatedComments.comments);
-
-            cancelEditingComment();
-
-            setCommentSuccess(
-                "Comment updated successfully."
-            );
-        } catch (error) {
-            console.error(
-                "Failed to update comment:",
-                error.response?.data ||
-                    error.message
-            );
-
-            setCommentError(
-                error.response?.data?.message ||
-                    "Failed to update comment."
-            );
+            await updateComment(commentId, trimmed);
+            const updated = await getComments(projectId);
+            setComments(updated.comments || []);
+            setEditingCommentId(null);
+            setEditingCommentContent("");
+        } catch (err) {
+            setCommentError(err.response?.data?.message || "Failed to edit comment.");
         } finally {
             setCommentActionLoading("");
         }
     };
 
-    // ================================
-    // Delete Comment
-    // ================================
-
-    const handleDeleteComment = async (comment) => {
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this comment?"
-        );
-
-        if (!confirmed) {
-            return;
-        }
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm("Delete this comment?")) return;
 
         try {
-            setCommentActionLoading(comment._id);
-            setCommentError("");
-            setCommentSuccess("");
-
-            await deleteComment(comment._id);
-
-            const updatedComments =
-                await getComments(projectId);
-
-            setComments(updatedComments.comments);
-
-            if (editingCommentId === comment._id) {
-                cancelEditingComment();
+            setCommentActionLoading(commentId);
+            await deleteComment(commentId);
+            const updated = await getComments(projectId);
+            setComments(updated.comments || []);
+            if (editingCommentId === commentId) {
+                setEditingCommentId(null);
             }
-
-            setCommentSuccess(
-                "Comment deleted successfully."
-            );
-        } catch (error) {
-            console.error(
-                "Failed to delete comment:",
-                error.response?.data ||
-                    error.message
-            );
-
-            setCommentError(
-                error.response?.data?.message ||
-                    "Failed to delete comment."
-            );
+        } catch (err) {
+            setCommentError(err.response?.data?.message || "Failed to delete comment.");
         } finally {
             setCommentActionLoading("");
         }
     };
-
-    // ================================
-    // Loading
-    // ================================
 
     if (loading) {
         return (
-            <div className="project-details-state">
-                <p>Loading project...</p>
+            <div className="page-loader">
+                <div className="spinner spinner-primary" style={{ width: "32px", height: "32px", borderWidth: "3px" }}></div>
+                <p>Loading project details...</p>
             </div>
         );
     }
 
-    // ================================
-    // Error
-    // ================================
-
-    if (error) {
+    if (error || !project) {
         return (
-            <div className="project-details-state project-details-error">
-                <p>{error}</p>
-
-                <Link to="/projects">
-                    Back to Projects
+            <div className="project-details-page">
+                <Link to="/projects" className="back-to-projects">
+                    <ArrowLeft size={16} />
+                    <span>Back to Projects</span>
                 </Link>
+                <div className="auth-error" style={{ maxWidth: "600px", margin: "40px auto" }}>
+                    <AlertCircle size={18} />
+                    <span>{error || "Project not found"}</span>
+                </div>
             </div>
         );
     }
@@ -482,708 +264,464 @@ function ProjectDetails() {
     const isOwner =
         user &&
         project?.owner &&
-        String(project.owner._id) ===
-            String(user._id);
+        String(project.owner._id || project.owner) === String(user._id);
 
     const isTeamMember =
         user &&
         project?.teamMembers?.some(
-            (member) =>
-                String(member?._id || member) ===
-                String(user._id)
+            (member) => String(member?._id || member) === String(user._id)
         );
 
     const canComment = isOwner || isTeamMember;
 
     return (
         <div className="project-details-page">
-
-            {/* Back */}
-
-            <Link
-                to="/projects"
-                className="back-to-projects"
-            >
-                ← Back to Projects
+            <Link to="/projects" className="back-to-projects">
+                <ArrowLeft size={16} />
+                <span>Back to Projects</span>
             </Link>
 
             {/* Header */}
-
             <section className="project-details-header">
-
-                <div>
-
+                <div className="project-details-header-main">
                     <div className="project-details-meta">
-
-                        <span className="project-details-category">
-                            {project.category}
+                        <span className="project-category-badge">
+                            {project.category || "General"}
                         </span>
-
-                        <span
-                            className={`project-details-status ${project.recruitmentStatus}`}
-                        >
-                            ● {project.recruitmentStatus}
+                        <span className={`badge-status-pill ${project.recruitmentStatus}`}>
+                            <span className="badge-status-dot"></span>
+                            {project.recruitmentStatus}
                         </span>
-
                     </div>
 
-                    <h1>{project.title}</h1>
-
-                    <p>
-                        {project.description}
-                    </p>
-
+                    <h1 className="project-details-title">{project.title}</h1>
+                    <p className="project-details-description">{project.description}</p>
                 </div>
 
                 <div className="project-details-actions">
-
-                    <Link
-                        to={`/projects/${projectId}/tasks`}
-                        className="tasks-button"
-                    >
-                        View Tasks
+                    <Link to={`/projects/${projectId}/tasks`} className="btn-tasks-action">
+                        <KanbanSquare size={16} />
+                        <span>Workspace & Tasks</span>
                     </Link>
 
-                    {isOwner && (
-                        <Link
-                            to={`/projects/${projectId}/edit`}
-                            className="edit-project-button"
-                        >
-                            Edit Project
-                        </Link>
-                    )}
-
-                    {isOwner && (
-                        <button
-                            className="delete-project-button"
-                            onClick={handleDeleteProject}
-                        >
-                            Delete Project
-                        </button>
-                    )}
-
                     {isOwner ? (
-                        <button
-                            className="apply-button"
-                            disabled
-                        >
-                            You own this project
-                        </button>
+                        <>
+                            <Link to={`/projects/${projectId}/edit`} className="btn-edit-action">
+                                <Edit3 size={15} />
+                                <span>Edit Project</span>
+                            </Link>
+
+                            <button onClick={handleDeleteProject} className="btn-delete-action">
+                                <Trash2 size={15} />
+                                <span>Delete</span>
+                            </button>
+                        </>
+                    ) : isTeamMember ? (
+                        <div className="member-pill-badge">
+                            <UserCheck size={16} />
+                            <span>Team Member</span>
+                        </div>
                     ) : project.recruitmentStatus !== "open" ? (
-                        <button
-                            className="apply-button"
-                            disabled
-                        >
-                            Recruitment Closed
-                        </button>
+                        <div className="member-pill-badge" style={{ background: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-muted)" }}>
+                            <span>Recruitment Closed</span>
+                        </div>
                     ) : (
                         <button
-                            className="apply-button"
+                            className="btn-apply-action"
                             onClick={handleApply}
                             disabled={applicationLoading}
                         >
-                            {applicationLoading
-                                ? "Applying..."
-                                : "Apply to Join"}
+                            {applicationLoading ? (
+                                <>
+                                    <span className="spinner" style={{ width: "16px", height: "16px" }}></span>
+                                    <span>Submitting...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={15} />
+                                    <span>Apply to Join</span>
+                                </>
+                            )}
                         </button>
                     )}
-
                 </div>
-
             </section>
 
-            {/* Application Messages */}
-
+            {/* Notifications */}
             {applicationStatus && (
-                <div className="application-success-message">
-                    {applicationStatus}
+                <div className="auth-success" style={{ marginBottom: "24px" }}>
+                    <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+                    <span>{applicationStatus}</span>
                 </div>
             )}
 
             {applicationError && (
-                <div className="application-error-message">
-                    {applicationError}
+                <div className="auth-error" style={{ marginBottom: "24px" }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span>{applicationError}</span>
                 </div>
             )}
 
-            {/* Applications */}
-
-            {isOwner && (
-                <section className="project-details-card applications-section">
-
-                    <div className="section-heading">
-                        <h2>
-                            Applications
-                        </h2>
+            {/* Two-Column Grid */}
+            <div className="project-details-grid">
+                {/* Main Column */}
+                <div className="details-main-column">
+                    {/* Project Overview Numbers */}
+                    <div className="details-card">
+                        <div className="card-title-bar">
+                            <h2>
+                                <Layers size={18} />
+                                <span>Project Overview</span>
+                            </h2>
+                        </div>
+                        <div className="project-overview-grid">
+                            <div className="overview-stat-box">
+                                <span>Category</span>
+                                <strong>{project.category || "General"}</strong>
+                            </div>
+                            <div className="overview-stat-box">
+                                <span>Target Team Size</span>
+                                <strong>{project.teamSize} members</strong>
+                            </div>
+                            <div className="overview-stat-box">
+                                <span>Active Members</span>
+                                <strong>{project.teamMembers?.length || 0} joined</strong>
+                            </div>
+                            <div className="overview-stat-box">
+                                <span>Recruitment</span>
+                                <strong style={{ textTransform: "capitalize" }}>{project.recruitmentStatus}</strong>
+                            </div>
+                        </div>
                     </div>
 
-                    {applicationsLoading ? (
-                        <p className="details-muted">
-                            Loading applications...
-                        </p>
-                    ) : applications.length === 0 ? (
-                        <p className="details-muted">
-                            No applications received yet.
-                        </p>
-                    ) : (
-                        <div className="applications-list">
+                    {/* Team Members */}
+                    <div className="details-card">
+                        <div className="card-title-bar">
+                            <h2>
+                                <Users size={18} />
+                                <span>Team Members ({project.teamMembers?.length || 0})</span>
+                            </h2>
+                        </div>
 
-                            {applications.map(
-                                (application) => (
-                                    <div
-                                        className="application-card"
-                                        key={application._id}
-                                    >
-
-                                        <div className="application-info">
-
-                                            <div className="application-avatar">
-                                                {application.applicant?.name
-                                                    ?.charAt(0)
-                                                    .toUpperCase()}
-                                            </div>
-
-                                            <div>
-
-                                                <strong>
-                                                    {application.applicant?.name ||
-                                                        "Unknown Applicant"}
-                                                </strong>
-
-                                                <span>
-                                                    {application.applicant?.email ||
-                                                        "No email available"}
-                                                </span>
-
-                                            </div>
-
+                        {project.teamMembers?.length > 0 ? (
+                            <div className="team-members-grid">
+                                {project.teamMembers.map((member) => (
+                                    <div className="team-member-row" key={member._id || member}>
+                                        <div className="team-member-avatar">
+                                            {typeof member === "object" && member.name
+                                                ? member.name.charAt(0).toUpperCase()
+                                                : "U"}
                                         </div>
-
-                                        <div className="application-actions">
-
-                                            <span
-                                                className={`application-status ${application.status}`}
-                                            >
-                                                {application.status}
-                                            </span>
-
-                                            {application.status ===
-                                                "pending" && (
-                                                <div className="application-buttons">
-
-                                                    <button
-                                                        className="accept-application-button"
-                                                        onClick={() =>
-                                                            handleApplicationStatus(
-                                                                application._id,
-                                                                "accepted"
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            applicationActionLoading ===
-                                                            application._id
-                                                        }
-                                                    >
-                                                        {applicationActionLoading ===
-                                                        application._id
-                                                            ? "Updating..."
-                                                            : "Accept"}
-                                                    </button>
-
-                                                    <button
-                                                        className="reject-application-button"
-                                                        onClick={() =>
-                                                            handleApplicationStatus(
-                                                                application._id,
-                                                                "rejected"
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            applicationActionLoading ===
-                                                            application._id
-                                                        }
-                                                    >
-                                                        Reject
-                                                    </button>
-
-                                                </div>
+                                        <div className="team-member-info">
+                                            <strong>
+                                                {typeof member === "object" ? member.name : "Builder"}
+                                            </strong>
+                                            {typeof member === "object" && member.email && (
+                                                <span>{member.email}</span>
                                             )}
-
                                         </div>
-
                                     </div>
-                                )
-                            )}
-
-                        </div>
-                    )}
-
-                </section>
-            )}
-
-            {/* Comments */}
-
-            {canComment && (
-                <section className="project-details-card comments-section">
-
-                    <div className="section-heading">
-                        <h2>
-                            Comments
-                        </h2>
-                    </div>
-
-                    {/* Add Comment */}
-
-                    <form
-                        className="comment-form"
-                        onSubmit={handleCreateComment}
-                    >
-                        <textarea
-                            value={commentContent}
-                            onChange={(event) =>
-                                setCommentContent(
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Write a comment..."
-                            maxLength={500}
-                            rows={3}
-                            disabled={commentLoading}
-                        />
-
-                        <div className="comment-form-footer">
-
-                            <span className="comment-character-count">
-                                {commentContent.length}/500
-                            </span>
-
-                            <button
-                                type="submit"
-                                className="comment-submit-button"
-                                disabled={commentLoading}
-                            >
-                                {commentLoading
-                                    ? "Posting..."
-                                    : "Post Comment"}
-                            </button>
-
-                        </div>
-                    </form>
-
-                    {commentSuccess && (
-                        <div className="comment-success-message">
-                            {commentSuccess}
-                        </div>
-                    )}
-
-                    {commentError && (
-                        <div className="comment-error-message">
-                            {commentError}
-                        </div>
-                    )}
-
-                    {/* Comments List */}
-
-                    <div className="comments-list">
-
-                        {commentsLoading ? (
-                            <p className="details-muted">
-                                Loading comments...
-                            </p>
-                        ) : comments.length === 0 ? (
-                            <p className="details-muted">
-                                No comments yet. Start the discussion.
-                            </p>
+                                ))}
+                            </div>
                         ) : (
-                            comments.map((comment) => {
+                            <p style={{ color: "var(--text-muted)", margin: 0, fontSize: "14px" }}>
+                                No team members joined yet.
+                            </p>
+                        )}
+                    </div>
 
-                                const isCommentAuthor =
-                                    user &&
-                                    comment.author &&
-                                    String(
-                                        comment.author._id
-                                    ) ===
-                                        String(user._id);
+                    {/* Applications (Project Owner Only) */}
+                    {isOwner && (
+                        <div className="details-card">
+                            <div className="card-title-bar">
+                                <h2>
+                                    <Users size={18} />
+                                    <span>Applications Received ({applications.length})</span>
+                                </h2>
+                            </div>
 
-                                const isEditing =
-                                    editingCommentId ===
-                                    comment._id;
-
-                                return (
-                                    <div
-                                        className="comment-card"
-                                        key={comment._id}
-                                    >
-
-                                        <div className="comment-avatar">
-                                            {comment.author?.name
-                                                ?.charAt(0)
-                                                .toUpperCase() || "U"}
-                                        </div>
-
-                                        <div className="comment-body">
-
-                                            <div className="comment-header">
-
-                                                <div>
-                                                    <strong>
-                                                        {comment.author?.name ||
-                                                            "Unknown User"}
-                                                    </strong>
-
-                                                    <span className="comment-date">
-                                                        {new Date(
-                                                            comment.createdAt
-                                                        ).toLocaleString()}
-                                                    </span>
+                            {applicationsLoading ? (
+                                <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>Loading applications...</p>
+                            ) : applications.length === 0 ? (
+                                <p style={{ color: "var(--text-muted)", margin: 0, fontSize: "14px" }}>
+                                    No applications received yet.
+                                </p>
+                            ) : (
+                                <div className="applications-list">
+                                    {applications.map((app) => (
+                                        <div className="application-row" key={app._id}>
+                                            <div className="applicant-profile">
+                                                <div className="applicant-avatar">
+                                                    {app.applicant?.name?.charAt(0).toUpperCase() || "A"}
                                                 </div>
-
-                                                {isCommentAuthor &&
-                                                    !isEditing && (
-                                                        <div className="comment-actions">
-
-                                                            <button
-                                                                className="comment-edit-button"
-                                                                onClick={() =>
-                                                                    startEditingComment(
-                                                                        comment
-                                                                    )
-                                                                }
-                                                            >
-                                                                Edit
-                                                            </button>
-
-                                                            <button
-                                                                className="comment-delete-button"
-                                                                onClick={() =>
-                                                                    handleDeleteComment(
-                                                                        comment
-                                                                    )
-                                                                }
-                                                                disabled={
-                                                                    commentActionLoading ===
-                                                                    comment._id
-                                                                }
-                                                            >
-                                                                {commentActionLoading ===
-                                                                comment._id
-                                                                    ? "Deleting..."
-                                                                    : "Delete"}
-                                                            </button>
-
-                                                        </div>
-                                                    )}
-
+                                                <div className="applicant-info">
+                                                    <strong>{app.applicant?.name || "Applicant"}</strong>
+                                                    <span>{app.applicant?.email || "No email"}</span>
+                                                </div>
                                             </div>
 
-                                            {isEditing ? (
-                                                <form
-                                                    className="comment-edit-form"
-                                                    onSubmit={(event) =>
-                                                        handleUpdateComment(
-                                                            event,
-                                                            comment._id
-                                                        )
-                                                    }
-                                                >
-
-                                                    <textarea
-                                                        value={
-                                                            editingCommentContent
-                                                        }
-                                                        onChange={(event) =>
-                                                            setEditingCommentContent(
-                                                                event.target
-                                                                    .value
-                                                            )
-                                                        }
-                                                        maxLength={500}
-                                                        rows={3}
-                                                        disabled={
-                                                            commentActionLoading ===
-                                                            comment._id
-                                                        }
-                                                    />
-
-                                                    <div className="comment-edit-actions">
-
-                                                        <button
-                                                            type="submit"
-                                                            className="comment-save-button"
-                                                            disabled={
-                                                                commentActionLoading ===
-                                                                comment._id
-                                                            }
-                                                        >
-                                                            {commentActionLoading ===
-                                                            comment._id
-                                                                ? "Saving..."
-                                                                : "Save"}
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            className="comment-cancel-button"
-                                                            onClick={
-                                                                cancelEditingComment
-                                                            }
-                                                            disabled={
-                                                                commentActionLoading ===
-                                                                comment._id
-                                                            }
-                                                        >
-                                                            Cancel
-                                                        </button>
-
-                                                    </div>
-
-                                                </form>
-                                            ) : (
-                                                <p className="comment-content">
-                                                    {comment.content}
-                                                </p>
-                                            )}
-
-                                        </div>
-
-                                    </div>
-                                );
-                            })
-                        )}
-
-                    </div>
-
-                </section>
-            )}
-
-            {/* Required Skills */}
-
-            <section className="project-details-card">
-
-                <div className="section-heading">
-                    <h2>
-                        Required Skills
-                    </h2>
-                </div>
-
-                {project.requiredSkills.length > 0 ? (
-                    <div className="details-skills">
-
-                        {project.requiredSkills.map(
-                            (skill) => (
-                                <span key={skill}>
-                                    {skill}
-                                </span>
-                            )
-                        )}
-
-                    </div>
-                ) : (
-                    <p className="details-muted">
-                        No specific skills listed.
-                    </p>
-                )}
-
-            </section>
-
-            {/* Project Information */}
-
-            <section className="project-details-card">
-
-                <div className="section-heading">
-                    <h2>
-                        Project Information
-                    </h2>
-                </div>
-
-                <div className="project-info-grid">
-
-                    <div>
-                        <span>
-                            Team Size
-                        </span>
-
-                        <strong>
-                            👥 {project.teamSize}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>
-                            Current Members
-                        </span>
-
-                        <strong>
-                            👤 {project.teamMembers.length}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>
-                            Category
-                        </span>
-
-                        <strong>
-                            {project.category}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>
-                            Recruitment
-                        </span>
-
-                        <strong className="capitalize">
-                            {project.recruitmentStatus}
-                        </strong>
-                    </div>
-
-                </div>
-
-            </section>
-
-            {/* Tech Stack */}
-
-            <section className="project-details-card">
-
-                <div className="section-heading">
-                    <h2>
-                        Tech Stack
-                    </h2>
-                </div>
-
-                {project.techStack.length > 0 ? (
-                    <div className="details-skills">
-
-                        {project.techStack.map(
-                            (technology) => (
-                                <span key={technology}>
-                                    {technology}
-                                </span>
-                            )
-                        )}
-
-                    </div>
-                ) : (
-                    <p className="details-muted">
-                        No tech stack specified yet.
-                    </p>
-                )}
-
-            </section>
-
-            {/* Team */}
-
-            <section className="project-details-card">
-
-                <div className="section-heading">
-                    <h2>
-                        Team Members
-                    </h2>
-                </div>
-
-                {project.teamMembers.length > 0 ? (
-                    <div className="team-members">
-
-                        {project.teamMembers.map(
-                            (member) => (
-                                <div
-                                    className="team-member"
-                                    key={member._id || member}
-                                >
-
-                                    <div className="member-avatar">
-                                        {typeof member === "object"
-                                            ? member.name
-                                                ?.charAt(0)
-                                                .toUpperCase()
-                                            : "U"}
-                                    </div>
-
-                                    <div>
-
-                                        <strong>
-                                            {typeof member === "object"
-                                                ? member.name
-                                                : "Team Member"}
-                                        </strong>
-
-                                        {typeof member === "object" &&
-                                            member.email && (
-                                                <span>
-                                                    {member.email}
+                                            <div className="application-status-actions">
+                                                <span className={`badge-status-pill ${app.status}`}>
+                                                    <span className="badge-status-dot"></span>
+                                                    {app.status}
                                                 </span>
-                                            )}
 
-                                    </div>
+                                                {app.status === "pending" && (
+                                                    <>
+                                                        <button
+                                                            className="btn-app-accept"
+                                                            onClick={() => handleApplicationStatus(app._id, "accepted")}
+                                                            disabled={applicationActionLoading === app._id}
+                                                        >
+                                                            <Check size={13} />
+                                                            <span>Accept</span>
+                                                        </button>
 
+                                                        <button
+                                                            className="btn-app-reject"
+                                                            onClick={() => handleApplicationStatus(app._id, "rejected")}
+                                                            disabled={applicationActionLoading === app._id}
+                                                        >
+                                                            <X size={13} />
+                                                            <span>Reject</span>
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )
+                            )}
+                        </div>
+                    )}
+
+                    {/* Discussion & Comments */}
+                    <div className="details-card">
+                        <div className="card-title-bar">
+                            <h2>
+                                <MessageSquare size={18} />
+                                <span>Team Discussion ({comments.length})</span>
+                            </h2>
+                        </div>
+
+                        {canComment ? (
+                            <>
+                                <form onSubmit={handleCreateComment} className="comment-input-form">
+                                    <textarea
+                                        value={commentContent}
+                                        onChange={(e) => setCommentContent(e.target.value)}
+                                        placeholder="Write an update, question, or note for the team..."
+                                        maxLength={500}
+                                        rows={3}
+                                        disabled={commentLoading}
+                                    />
+                                    <div className="comment-footer-actions">
+                                        <span className="char-counter">
+                                            {commentContent.length}/500
+                                        </span>
+                                        <button
+                                            type="submit"
+                                            className="btn-submit-comment"
+                                            disabled={commentLoading || !commentContent.trim()}
+                                        >
+                                            <Send size={13} />
+                                            <span>Post Update</span>
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {commentSuccess && (
+                                    <div className="auth-success" style={{ marginBottom: "16px", padding: "8px 12px" }}>
+                                        <CheckCircle2 size={15} />
+                                        <span>{commentSuccess}</span>
+                                    </div>
+                                )}
+
+                                {commentError && (
+                                    <div className="auth-error" style={{ marginBottom: "16px", padding: "8px 12px" }}>
+                                        <AlertCircle size={15} />
+                                        <span>{commentError}</span>
+                                    </div>
+                                )}
+
+                                <div className="comments-timeline">
+                                    {commentsLoading ? (
+                                        <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>Loading discussion...</p>
+                                    ) : comments.length === 0 ? (
+                                        <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: "8px 0" }}>
+                                            No messages yet. Start the team discussion above!
+                                        </p>
+                                    ) : (
+                                        comments.map((comm) => {
+                                            const isAuthor =
+                                                user &&
+                                                comm.author &&
+                                                String(comm.author._id || comm.author) === String(user._id);
+                                            const isEditing = editingCommentId === comm._id;
+
+                                            return (
+                                                <div className="comment-item" key={comm._id}>
+                                                    <div className="comment-avatar-bubble">
+                                                        {comm.author?.name ? comm.author.name.charAt(0).toUpperCase() : "U"}
+                                                    </div>
+                                                    <div className="comment-body-area">
+                                                        <div className="comment-header-row">
+                                                            <strong>{comm.author?.name || "Team Member"}</strong>
+                                                            <span className="comment-timestamp">
+                                                                <Clock size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "3px" }} />
+                                                                {new Date(comm.createdAt).toLocaleString()}
+                                                            </span>
+                                                        </div>
+
+                                                        {isEditing ? (
+                                                            <form onSubmit={(e) => handleUpdateComment(e, comm._id)}>
+                                                                <textarea
+                                                                    value={editingCommentContent}
+                                                                    onChange={(e) => setEditingCommentContent(e.target.value)}
+                                                                    maxLength={500}
+                                                                    rows={2}
+                                                                    style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid var(--border-light)" }}
+                                                                />
+                                                                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                                                                    <button
+                                                                        type="submit"
+                                                                        className="btn-submit-comment"
+                                                                        style={{ padding: "4px 10px", fontSize: "12px" }}
+                                                                        disabled={commentActionLoading === comm._id}
+                                                                    >
+                                                                        Save
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn-edit-action"
+                                                                        style={{ padding: "4px 10px", fontSize: "12px" }}
+                                                                        onClick={() => setEditingCommentId(null)}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        ) : (
+                                                            <p className="comment-message-text">{comm.content}</p>
+                                                        )}
+
+                                                        {isAuthor && !isEditing && (
+                                                            <div className="comment-item-actions">
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-text-action"
+                                                                    onClick={() => {
+                                                                        setEditingCommentId(comm._id);
+                                                                        setEditingCommentContent(comm.content);
+                                                                    }}
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                                <span>•</span>
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-text-action delete"
+                                                                    onClick={() => handleDeleteComment(comm._id)}
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <p style={{ color: "var(--text-muted)", margin: 0, fontSize: "14px" }}>
+                                Team discussions are reserved for project collaborators. Apply to join this project to participate.
+                            </p>
                         )}
-
                     </div>
-                ) : (
-                    <p className="details-muted">
-                        No team members yet.
-                    </p>
-                )}
-
-            </section>
-
-            {/* Resources */}
-
-            <section className="project-details-card">
-
-                <div className="section-heading">
-                    <h2>
-                        Resources
-                    </h2>
                 </div>
 
-                {project.resources.length > 0 ? (
-                    <div className="resources-list">
-
-                        {project.resources.map(
-                            (resource, index) => (
-                                <a
-                                    key={
-                                        resource._id ||
-                                        index
-                                    }
-                                    href={resource.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-
-                                    <span>
-                                        🔗
-                                    </span>
-
-                                    <div>
-
-                                        <strong>
-                                            {resource.title}
-                                        </strong>
-
-                                        <span>
-                                            {resource.url}
-                                        </span>
-
-                                    </div>
-
-                                </a>
-                            )
+                {/* Sidebar Column */}
+                <div className="details-sidebar-column">
+                    {/* Tech Stack */}
+                    <div className="details-card">
+                        <div className="card-title-bar">
+                            <h2>
+                                <Code2 size={16} />
+                                <span>Tech Stack</span>
+                            </h2>
+                        </div>
+                        {project.techStack?.length > 0 ? (
+                            <div className="tag-cloud">
+                                {project.techStack.map((tech) => (
+                                    <span key={tech}>{tech}</span>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
+                                No tech stack specified.
+                            </p>
                         )}
-
                     </div>
-                ) : (
-                    <p className="details-muted">
-                        No resources added yet.
-                    </p>
-                )}
 
-            </section>
+                    {/* Required Skills */}
+                    <div className="details-card">
+                        <div className="card-title-bar">
+                            <h2>
+                                <Layers size={16} />
+                                <span>Required Skills</span>
+                            </h2>
+                        </div>
+                        {project.requiredSkills?.length > 0 ? (
+                            <div className="tag-cloud">
+                                {project.requiredSkills.map((skill) => (
+                                    <span key={skill}>{skill}</span>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
+                                Open to all skill levels.
+                            </p>
+                        )}
+                    </div>
 
+                    {/* Project Resources */}
+                    <div className="details-card">
+                        <div className="card-title-bar">
+                            <h2>
+                                <ExternalLink size={16} />
+                                <span>Resources & Links</span>
+                            </h2>
+                        </div>
+                        {project.resources?.length > 0 ? (
+                            <div className="resource-links-list">
+                                {project.resources.map((res, index) => (
+                                    <a
+                                        key={res._id || index}
+                                        href={res.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="resource-link-item"
+                                    >
+                                        <div className="resource-icon-box">
+                                            <ExternalLink size={15} />
+                                        </div>
+                                        <div className="resource-text-content">
+                                            <strong>{res.title || "External Resource"}</strong>
+                                            <span>{res.url}</span>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
+                                No resources linked yet.
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

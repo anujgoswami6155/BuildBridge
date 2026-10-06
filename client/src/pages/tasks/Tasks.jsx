@@ -8,6 +8,17 @@ import {
     updateTask,
     deleteTask
 } from "../../services/task.service";
+import { 
+    ArrowLeft, 
+    Plus, 
+    Edit3, 
+    Trash2, 
+    User, 
+    CheckCircle2, 
+    AlertCircle, 
+    X,
+    Save
+} from "lucide-react";
 import "./Tasks.css";
 
 function Tasks() {
@@ -65,16 +76,12 @@ function Tasks() {
                 ]);
 
                 setProject(projectData);
-                setKanban(kanbanData.kanban);
-            } catch (error) {
-                console.error(
-                    "Failed to fetch task data:",
-                    error.response?.data || error.message
-                );
-
+                setKanban(kanbanData.kanban || { todo: [], inProgress: [], completed: [] });
+            } catch (err) {
+                console.error("Failed to fetch task data:", err);
                 setError(
-                    error.response?.data?.message ||
-                    "Failed to load tasks."
+                    err.response?.data?.message ||
+                    "Failed to load workspace tasks. Please refresh and try again."
                 );
             } finally {
                 setLoading(false);
@@ -87,20 +94,18 @@ function Tasks() {
     const isOwner =
         user &&
         project?.owner &&
-        String(project.owner._id) === String(user._id);
+        String(project.owner._id || project.owner) === String(user._id);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-
-        setFormData((previous) => ({
-            ...previous,
+        setFormData((prev) => ({
+            ...prev,
             [name]: value
         }));
     };
 
     const handleCreateTask = async (event) => {
         event.preventDefault();
-
         setCreateError("");
         setCreateSuccess("");
 
@@ -120,7 +125,6 @@ function Tasks() {
             });
 
             const updatedKanban = await getKanban(projectId);
-
             setKanban(updatedKanban.kanban);
 
             setFormData({
@@ -132,15 +136,9 @@ function Tasks() {
 
             setCreateSuccess("Task created successfully.");
             setShowCreateForm(false);
-        } catch (error) {
-            console.error(
-                "Failed to create task:",
-                error.response?.data || error.message
-            );
-
+        } catch (err) {
             setCreateError(
-                error.response?.data?.message ||
-                "Failed to create task."
+                err.response?.data?.message || "Failed to create task."
             );
         } finally {
             setCreateLoading(false);
@@ -149,17 +147,12 @@ function Tasks() {
 
     const startEditingTask = (task) => {
         setEditingTaskId(task._id);
-
         setEditFormData({
             title: task.title || "",
             description: task.description || "",
-            assignedTo:
-                task.assignedTo?._id ||
-                task.assignedTo ||
-                "",
+            assignedTo: task.assignedTo?._id || task.assignedTo || "",
             status: task.status || "todo"
         });
-
         setEditError("");
         setCreateSuccess("");
         setDeleteError("");
@@ -168,7 +161,6 @@ function Tasks() {
     const cancelEditingTask = () => {
         setEditingTaskId(null);
         setEditError("");
-
         setEditFormData({
             title: "",
             description: "",
@@ -179,16 +171,14 @@ function Tasks() {
 
     const handleEditChange = (event) => {
         const { name, value } = event.target;
-
-        setEditFormData((previous) => ({
-            ...previous,
+        setEditFormData((prev) => ({
+            ...prev,
             [name]: value
         }));
     };
 
     const handleUpdateTask = async (event, task) => {
         event.preventDefault();
-
         setEditError("");
         setCreateSuccess("");
 
@@ -201,7 +191,6 @@ function Tasks() {
             setEditLoading(true);
 
             let updateData;
-
             if (isOwner) {
                 updateData = {
                     title: editFormData.title.trim(),
@@ -215,28 +204,15 @@ function Tasks() {
                 };
             }
 
-            await updateTask(
-                projectId,
-                task._id,
-                updateData
-            );
-
+            await updateTask(projectId, task._id, updateData);
             const updatedKanban = await getKanban(projectId);
-
             setKanban(updatedKanban.kanban);
 
             setCreateSuccess("Task updated successfully.");
-
             cancelEditingTask();
-        } catch (error) {
-            console.error(
-                "Failed to update task:",
-                error.response?.data || error.message
-            );
-
+        } catch (err) {
             setEditError(
-                error.response?.data?.message ||
-                "Failed to update task."
+                err.response?.data?.message || "Failed to update task."
             );
         } finally {
             setEditLoading(false);
@@ -244,13 +220,8 @@ function Tasks() {
     };
 
     const handleDeleteTask = async (task) => {
-        const confirmed = window.confirm(
-            `Are you sure you want to delete "${task.title}"?`
-        );
-
-        if (!confirmed) {
-            return;
-        }
+        const confirmed = window.confirm(`Delete task "${task.title}"?`);
+        if (!confirmed) return;
 
         try {
             setDeleteLoading(task._id);
@@ -258,25 +229,16 @@ function Tasks() {
             setCreateSuccess("");
 
             await deleteTask(projectId, task._id);
-
             const updatedKanban = await getKanban(projectId);
-
             setKanban(updatedKanban.kanban);
 
             if (editingTaskId === task._id) {
                 cancelEditingTask();
             }
-
-            setCreateSuccess("Task deleted successfully.");
-        } catch (error) {
-            console.error(
-                "Failed to delete task:",
-                error.response?.data || error.message
-            );
-
+            setCreateSuccess("Task deleted.");
+        } catch (err) {
             setDeleteError(
-                error.response?.data?.message ||
-                "Failed to delete task."
+                err.response?.data?.message || "Failed to delete task."
             );
         } finally {
             setDeleteLoading("");
@@ -285,20 +247,24 @@ function Tasks() {
 
     if (loading) {
         return (
-            <div className="tasks-state">
-                <p>Loading tasks...</p>
+            <div className="page-loader">
+                <div className="spinner spinner-primary" style={{ width: "32px", height: "32px", borderWidth: "3px" }}></div>
+                <p>Loading Kanban board...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="tasks-state tasks-error">
-                <p>{error}</p>
-
-                <Link to={`/projects/${projectId}`}>
-                    Back to Project
+            <div className="tasks-page">
+                <Link to={`/projects/${projectId}`} className="back-to-projects">
+                    <ArrowLeft size={16} />
+                    <span>Back to Project</span>
                 </Link>
+                <div className="auth-error" style={{ maxWidth: "600px", margin: "40px auto" }}>
+                    <AlertCircle size={18} />
+                    <span>{error}</span>
+                </div>
             </div>
         );
     }
@@ -307,446 +273,322 @@ function Tasks() {
         {
             key: "todo",
             title: "To Do",
-            tasks: kanban.todo
+            tasks: kanban.todo || []
         },
         {
             key: "inProgress",
             title: "In Progress",
-            tasks: kanban.inProgress
+            tasks: kanban.inProgress || []
         },
         {
             key: "completed",
             title: "Completed",
-            tasks: kanban.completed
+            tasks: kanban.completed || []
         }
     ];
 
     return (
         <div className="tasks-page">
-            <div className="tasks-container">
+            <Link to={`/projects/${projectId}`} className="back-to-projects">
+                <ArrowLeft size={16} />
+                <span>Back to {project?.title || "Project"}</span>
+            </Link>
 
-                <Link
-                    to={`/projects/${projectId}`}
-                    className="tasks-back-link"
-                >
-                    ← Back to Project
-                </Link>
-
-                <div className="tasks-header">
-                    <div>
-                        <p className="tasks-eyebrow">
-                            PROJECT WORKSPACE
-                        </p>
-
-                        <h1>Tasks</h1>
-
-                        <p>
-                            Track project work and manage task progress.
-                        </p>
-                    </div>
-
-                    {isOwner && (
-                        <button
-                            className="create-task-button"
-                            onClick={() => {
-                                setShowCreateForm((previous) => !previous);
-                                setCreateError("");
-                                setCreateSuccess("");
-                            }}
-                        >
-                            {showCreateForm
-                                ? "Cancel"
-                                : "+ Create Task"}
-                        </button>
-                    )}
+            <div className="tasks-header-row">
+                <div>
+                    <p className="tasks-eyebrow">
+                        WORKSPACE • {project?.title?.toUpperCase() || "PROJECT"}
+                    </p>
+                    <h1>Kanban Board</h1>
+                    <p>Track sprints, manage task delegation, and coordinate project progress.</p>
                 </div>
 
-                {createSuccess && (
-                    <div className="task-success-message">
-                        {createSuccess}
-                    </div>
+                {isOwner && (
+                    <button
+                        className="btn-create-task-toggle"
+                        onClick={() => {
+                            setShowCreateForm((prev) => !prev);
+                            setCreateError("");
+                            setCreateSuccess("");
+                        }}
+                    >
+                        {showCreateForm ? (
+                            <>
+                                <X size={16} />
+                                <span>Close Form</span>
+                            </>
+                        ) : (
+                            <>
+                                <Plus size={16} />
+                                <span>Create Task</span>
+                            </>
+                        )}
+                    </button>
                 )}
+            </div>
 
-                {createError && !showCreateForm && (
-                    <div className="task-error-message">
-                        {createError}
-                    </div>
-                )}
+            {createSuccess && (
+                <div className="auth-success" style={{ marginBottom: "20px" }}>
+                    <CheckCircle2 size={16} />
+                    <span>{createSuccess}</span>
+                </div>
+            )}
 
-                {deleteError && (
-                    <div className="task-error-message">
-                        {deleteError}
-                    </div>
-                )}
+            {deleteError && (
+                <div className="auth-error" style={{ marginBottom: "20px" }}>
+                    <AlertCircle size={16} />
+                    <span>{deleteError}</span>
+                </div>
+            )}
 
-                {isOwner && showCreateForm && (
-                    <div className="create-task-section">
-                        <div className="create-task-header">
-                            <h2>Create Task</h2>
+            {/* Create Task Form */}
+            {isOwner && showCreateForm && (
+                <div className="create-task-panel">
+                    <h2 className="panel-title">Add New Task</h2>
 
-                            <p>
-                                Add a new task to this project.
-                            </p>
+                    {createError && (
+                        <div className="auth-error" style={{ marginBottom: "16px" }}>
+                            <AlertCircle size={16} />
+                            <span>{createError}</span>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleCreateTask} className="task-form-grid">
+                        <div className="field-group">
+                            <label htmlFor="title">Task Title</label>
+                            <input
+                                id="title"
+                                name="title"
+                                type="text"
+                                value={formData.title}
+                                onChange={handleChange}
+                                placeholder="e.g. Implement user authentication middleware"
+                                required
+                            />
                         </div>
 
-                        {createError && (
-                            <div className="task-error-message">
-                                {createError}
-                            </div>
-                        )}
+                        <div className="field-group">
+                            <label htmlFor="description">Task Description</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Outline requirements, acceptance criteria, or technical notes..."
+                                rows={3}
+                            />
+                        </div>
 
-                        <form
-                            className="create-task-form"
-                            onSubmit={handleCreateTask}
-                        >
-                            <div className="form-group">
-                                <label htmlFor="title">
-                                    Title
-                                </label>
-
-                                <input
-                                    id="title"
-                                    name="title"
-                                    type="text"
-                                    value={formData.title}
+                        <div className="field-grid-2">
+                            <div className="field-group">
+                                <label htmlFor="assignedTo">Assign Teammate</label>
+                                <select
+                                    id="assignedTo"
+                                    name="assignedTo"
+                                    value={formData.assignedTo}
                                     onChange={handleChange}
-                                    placeholder="Enter task title"
-                                    required
-                                />
+                                >
+                                    <option value="">Unassigned</option>
+                                    {project?.teamMembers?.map((member) => (
+                                        <option key={member._id} value={member._id}>
+                                            {member.name} ({member.email || "Member"})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
-                            <div className="form-group">
-                                <label htmlFor="description">
-                                    Description
-                                </label>
-
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    value={formData.description}
+                            <div className="field-group">
+                                <label htmlFor="status">Initial Status</label>
+                                <select
+                                    id="status"
+                                    name="status"
+                                    value={formData.status}
                                     onChange={handleChange}
-                                    placeholder="Describe the task"
-                                    rows="4"
-                                />
+                                >
+                                    <option value="todo">To Do</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
                             </div>
+                        </div>
 
-                            <div className="form-row">
-
-                                <div className="form-group">
-                                    <label htmlFor="assignedTo">
-                                        Assign To
-                                    </label>
-
-                                    <select
-                                        id="assignedTo"
-                                        name="assignedTo"
-                                        value={formData.assignedTo}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="">
-                                            Unassigned
-                                        </option>
-
-                                        {project?.teamMembers?.map(
-                                            (member) => (
-                                                <option
-                                                    key={member._id}
-                                                    value={member._id}
-                                                >
-                                                    {member.name}
-                                                </option>
-                                            )
-                                        )}
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="status">
-                                        Status
-                                    </label>
-
-                                    <select
-                                        id="status"
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="todo">
-                                            To Do
-                                        </option>
-
-                                        <option value="in-progress">
-                                            In Progress
-                                        </option>
-
-                                        <option value="completed">
-                                            Completed
-                                        </option>
-                                    </select>
-                                </div>
-
-                            </div>
-
+                        <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                            <button
+                                type="button"
+                                className="btn-form-cancel"
+                                onClick={() => setShowCreateForm(false)}
+                            >
+                                Cancel
+                            </button>
                             <button
                                 type="submit"
-                                className="submit-task-button"
+                                className="btn-form-submit"
                                 disabled={createLoading}
                             >
-                                {createLoading
-                                    ? "Creating..."
-                                    : "Create Task"}
-                            </button>
-                        </form>
-                    </div>
-                )}
-
-                <div className="kanban-board">
-
-                    {columns.map((column) => (
-                        <div
-                            className="kanban-column"
-                            key={column.key}
-                        >
-                            <div className="kanban-column-header">
-                                <h2>{column.title}</h2>
-
-                                <span>
-                                    {column.tasks.length}
-                                </span>
-                            </div>
-
-                            <div className="kanban-tasks">
-
-                                {column.tasks.length === 0 ? (
-                                    <div className="kanban-empty">
-                                        No tasks
-                                    </div>
+                                {createLoading ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        <span>Saving Task...</span>
+                                    </>
                                 ) : (
-                                    column.tasks.map((task) => {
+                                    <>
+                                        <Plus size={15} />
+                                        <span>Add Task</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
-                                        const isEditing =
-                                            editingTaskId === task._id;
+            {/* Kanban Columns */}
+            <div className="kanban-board-grid">
+                {columns.map((column) => (
+                    <div className="kanban-col" key={column.key}>
+                        <div className="kanban-col-header">
+                            <div className="col-header-title">
+                                <span className={`col-dot ${column.key}`}></span>
+                                <span>{column.title}</span>
+                            </div>
+                            <span className="col-count-badge">
+                                {column.tasks.length}
+                            </span>
+                        </div>
 
-                                        return (
-                                            <div
-                                                className="task-card"
-                                                key={task._id}
-                                            >
+                        <div className="tasks-container-list">
+                            {column.tasks.length === 0 ? (
+                                <div className="kanban-empty-notice">
+                                    No tasks in {column.title}
+                                </div>
+                            ) : (
+                                column.tasks.map((task) => {
+                                    const isEditing = editingTaskId === task._id;
 
-                                                {!isEditing ? (
-                                                    <>
-                                                        <div className="task-card-content">
-                                                            <h3>
-                                                                {task.title}
-                                                            </h3>
+                                    return (
+                                        <div className="kanban-task-card" key={task._id}>
+                                            {!isEditing ? (
+                                                <>
+                                                    <h3 className="task-card-title">{task.title}</h3>
+                                                    {task.description && (
+                                                        <p className="task-card-desc">{task.description}</p>
+                                                    )}
 
-                                                            {task.description && (
-                                                                <p>
-                                                                    {task.description}
-                                                                </p>
-                                                            )}
+                                                    <div className="task-card-footer">
+                                                        {task.assignedTo ? (
+                                                            <span className="task-assignee-chip">
+                                                                <User size={12} />
+                                                                <span>{task.assignedTo.name || "Member"}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span style={{ fontSize: "11px", color: "var(--text-faint)" }}>
+                                                                Unassigned
+                                                            </span>
+                                                        )}
 
-                                                            {task.assignedTo && (
-                                                                <div className="task-assignee">
-                                                                    Assigned to{" "}
-                                                                    {task.assignedTo.name ||
-                                                                        "Team Member"}
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        <div className="task-card-actions">
-
+                                                        <div className="task-card-button-row">
                                                             <button
-                                                                className="edit-task-button"
-                                                                onClick={() =>
-                                                                    startEditingTask(task)
-                                                                }
+                                                                className="btn-task-action-icon"
+                                                                onClick={() => startEditingTask(task)}
+                                                                title="Edit Task"
                                                             >
-                                                                Edit
+                                                                <Edit3 size={13} />
                                                             </button>
 
                                                             {isOwner && (
                                                                 <button
-                                                                    className="delete-task-button"
-                                                                    onClick={() =>
-                                                                        handleDeleteTask(task)
-                                                                    }
-                                                                    disabled={
-                                                                        deleteLoading ===
-                                                                        task._id
-                                                                    }
+                                                                    className="btn-task-action-icon danger"
+                                                                    onClick={() => handleDeleteTask(task)}
+                                                                    disabled={deleteLoading === task._id}
+                                                                    title="Delete Task"
                                                                 >
-                                                                    {deleteLoading ===
-                                                                    task._id
-                                                                        ? "Deleting..."
-                                                                        : "Delete"}
+                                                                    <Trash2 size={13} />
                                                                 </button>
                                                             )}
-
                                                         </div>
-                                                    </>
-                                                ) : (
-                                                    <form
-                                                        className="edit-task-form"
-                                                        onSubmit={(event) =>
-                                                            handleUpdateTask(
-                                                                event,
-                                                                task
-                                                            )
-                                                        }
-                                                    >
-
-                                                        {isOwner ? (
-                                                            <>
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Title
-                                                                    </label>
-
-                                                                    <input
-                                                                        type="text"
-                                                                        name="title"
-                                                                        value={
-                                                                            editFormData.title
-                                                                        }
-                                                                        onChange={
-                                                                            handleEditChange
-                                                                        }
-                                                                        required
-                                                                    />
-                                                                </div>
-
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Description
-                                                                    </label>
-
-                                                                    <textarea
-                                                                        name="description"
-                                                                        value={
-                                                                            editFormData.description
-                                                                        }
-                                                                        onChange={
-                                                                            handleEditChange
-                                                                        }
-                                                                        rows="3"
-                                                                    />
-                                                                </div>
-
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Assign To
-                                                                    </label>
-
-                                                                    <select
-                                                                        name="assignedTo"
-                                                                        value={
-                                                                            editFormData.assignedTo
-                                                                        }
-                                                                        onChange={
-                                                                            handleEditChange
-                                                                        }
-                                                                    >
-                                                                        <option value="">
-                                                                            Unassigned
-                                                                        </option>
-
-                                                                        {project?.teamMembers?.map(
-                                                                            (member) => (
-                                                                                <option
-                                                                                    key={
-                                                                                        member._id
-                                                                                    }
-                                                                                    value={
-                                                                                        member._id
-                                                                                    }
-                                                                                >
-                                                                                    {
-                                                                                        member.name
-                                                                                    }
-                                                                                </option>
-                                                                            )
-                                                                        )}
-                                                                    </select>
-                                                                </div>
-                                                            </>
-                                                        ) : null}
-
-                                                        <div className="form-group">
-                                                            <label>
-                                                                Status
-                                                            </label>
-
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <form
+                                                    onSubmit={(e) => handleUpdateTask(e, task)}
+                                                    className="task-inline-edit"
+                                                >
+                                                    {isOwner && (
+                                                        <>
+                                                            <input
+                                                                type="text"
+                                                                name="title"
+                                                                value={editFormData.title}
+                                                                onChange={handleEditChange}
+                                                                placeholder="Task title"
+                                                                required
+                                                            />
+                                                            <textarea
+                                                                name="description"
+                                                                value={editFormData.description}
+                                                                onChange={handleEditChange}
+                                                                placeholder="Description"
+                                                                rows={2}
+                                                            />
                                                             <select
-                                                                name="status"
-                                                                value={
-                                                                    editFormData.status
-                                                                }
-                                                                onChange={
-                                                                    handleEditChange
-                                                                }
+                                                                name="assignedTo"
+                                                                value={editFormData.assignedTo}
+                                                                onChange={handleEditChange}
                                                             >
-                                                                <option value="todo">
-                                                                    To Do
-                                                                </option>
-
-                                                                <option value="in-progress">
-                                                                    In Progress
-                                                                </option>
-
-                                                                <option value="completed">
-                                                                    Completed
-                                                                </option>
+                                                                <option value="">Unassigned</option>
+                                                                {project?.teamMembers?.map((member) => (
+                                                                    <option key={member._id} value={member._id}>
+                                                                        {member.name}
+                                                                    </option>
+                                                                ))}
                                                             </select>
-                                                        </div>
+                                                        </>
+                                                    )}
 
-                                                        {editError && (
-                                                            <div className="task-error-message">
-                                                                {editError}
-                                                            </div>
-                                                        )}
+                                                    <select
+                                                        name="status"
+                                                        value={editFormData.status}
+                                                        onChange={handleEditChange}
+                                                    >
+                                                        <option value="todo">To Do</option>
+                                                        <option value="in-progress">In Progress</option>
+                                                        <option value="completed">Completed</option>
+                                                    </select>
 
-                                                        <div className="edit-task-actions">
-                                                            <button
-                                                                type="submit"
-                                                                className="save-task-button"
-                                                                disabled={
-                                                                    editLoading
-                                                                }
-                                                            >
-                                                                {editLoading
-                                                                    ? "Saving..."
-                                                                    : "Save"}
-                                                            </button>
+                                                    {editError && (
+                                                        <p style={{ color: "var(--danger)", fontSize: "11px", margin: 0 }}>
+                                                            {editError}
+                                                        </p>
+                                                    )}
 
-                                                            <button
-                                                                type="button"
-                                                                className="cancel-edit-button"
-                                                                onClick={
-                                                                    cancelEditingTask
-                                                                }
-                                                                disabled={
-                                                                    editLoading
-                                                                }
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-
-                                                    </form>
-                                                )}
-
-                                            </div>
-                                        );
-                                    })
-                                )}
-
-                            </div>
+                                                    <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
+                                                        <button
+                                                            type="submit"
+                                                            className="btn-submit-comment"
+                                                            style={{ padding: "5px 10px", fontSize: "12px" }}
+                                                            disabled={editLoading}
+                                                        >
+                                                            <Save size={12} />
+                                                            <span>Save</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="btn-form-cancel"
+                                                            style={{ padding: "5px 10px", fontSize: "12px" }}
+                                                            onClick={cancelEditingTask}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
-                    ))}
-
-                </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

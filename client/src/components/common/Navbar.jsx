@@ -1,5 +1,14 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { 
+    Layers, 
+    LayoutDashboard, 
+    FolderGit2, 
+    User, 
+    LogOut, 
+    Sparkles, 
+    Plus
+} from "lucide-react";
 
 function Navbar() {
     const { user, isAuthenticated, logout } = useAuth();
@@ -11,30 +20,87 @@ function Navbar() {
     };
 
     return (
-        <nav>
-            <Link to="/">BuildBridge</Link>
+        <header className="navbar">
+            <div className="navbar-container">
+                <div className="navbar-left">
+                    <Link to="/" className="navbar-brand">
+                        <span className="brand-icon-wrapper">
+                            <Layers size={20} strokeWidth={2.5} />
+                        </span>
+                        <span className="brand-text">BuildBridge</span>
+                    </Link>
 
-            <div>
-                {isAuthenticated ? (
-                    <>
-                        <Link to="/dashboard">Dashboard</Link>
-                        <Link to="/projects">Projects</Link>
-                        <Link to="/profile">Profile</Link>
+                    <nav className="navbar-links">
+                        <NavLink 
+                            to="/projects" 
+                            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                        >
+                            <FolderGit2 size={16} />
+                            <span>Explore Projects</span>
+                        </NavLink>
 
-                        <span>Hi, {user?.name}</span>
+                        {isAuthenticated && (
+                            <>
+                                <NavLink 
+                                    to="/dashboard" 
+                                    className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                                >
+                                    <LayoutDashboard size={16} />
+                                    <span>Dashboard</span>
+                                </NavLink>
 
-                        <button onClick={handleLogout}>
-                            Logout
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <Link to="/login">Login</Link>
-                        <Link to="/register">Register</Link>
-                    </>
-                )}
+                                <NavLink 
+                                    to="/profile" 
+                                    className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+                                >
+                                    <User size={16} />
+                                    <span>Profile</span>
+                                </NavLink>
+                            </>
+                        )}
+                    </nav>
+                </div>
+
+                <div className="navbar-actions">
+                    {isAuthenticated ? (
+                        <>
+                            <Link to="/projects/create" className="btn-nav-register" style={{ padding: "8px 14px", fontSize: "13px" }}>
+                                <Plus size={15} strokeWidth={2.5} />
+                                <span>New Project</span>
+                            </Link>
+
+                            <div className="user-badge" title={user?.email || ""}>
+                                <div className="user-avatar-mini">
+                                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                                </div>
+                                <span className="user-name-mini">
+                                    {user?.name || "Builder"}
+                                </span>
+                            </div>
+
+                            <button 
+                                onClick={handleLogout} 
+                                className="btn-logout"
+                                title="Sign out"
+                            >
+                                <LogOut size={15} />
+                                <span>Logout</span>
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login" className="btn-nav-login">
+                                Log in
+                            </Link>
+                            <Link to="/register" className="btn-nav-register">
+                                <Sparkles size={15} />
+                                <span>Get Started</span>
+                            </Link>
+                        </>
+                    )}
+                </div>
             </div>
-        </nav>
+        </header>
     );
 }
 

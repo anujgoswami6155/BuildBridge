@@ -1,418 +1,359 @@
-.create-project-page {
-    min-height: calc(100vh - 70px);
-    padding: 40px;
-    background: #f7f8fc;
-}
+/* ==========================================================================
+   Create & Edit Project Styles
+   ========================================================================== */
 
-/* Header */
-
-.create-project-header {
-    margin-bottom: 28px;
-}
-
-.create-project-label {
-    margin: 0 0 8px;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #667085;
-}
-
-.create-project-header h1 {
-    margin: 0;
-    color: #111827;
-    font-size: 40px;
-    line-height: 1.2;
-}
-
-.create-project-header p:last-child {
-    max-width: 700px;
-    margin: 10px 0 0;
-    color: #667085;
-    font-size: 16px;
-    line-height: 1.6;
-}
-
-/* Error */
-
-.create-project-error {
-    margin-bottom: 20px;
-    padding: 14px 16px;
-    border: 1px solid #fecdca;
-    border-radius: 10px;
-    background: #fef3f2;
-    color: #b42318;
-    font-size: 14px;
-}
-
-/* Form */
-
-.create-project-form {
-    max-width: 950px;
+.project-form-page {
+    max-width: 860px;
     margin: 0 auto;
+    padding: 36px 24px 72px;
 }
 
-.create-project-card {
-    margin-bottom: 22px;
-    padding: 28px;
-    background: #ffffff;
-    border: 1px solid #eaecf0;
-    border-radius: 20px;
-    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.04);
+.form-header-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-light);
 }
 
-.create-section-heading {
-    margin-bottom: 24px;
+.form-eyebrow {
+    margin: 0 0 6px 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    text-transform: uppercase;
 }
 
-.create-section-heading h2 {
-    margin: 0 0 6px;
-    color: #101828;
-    font-size: 21px;
+.form-header-section h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-primary);
 }
 
-.create-section-heading p {
+.form-header-section p {
     margin: 0;
-    color: #667085;
-    font-size: 14px;
+    color: var(--text-secondary);
+    font-size: 15px;
     line-height: 1.5;
 }
 
-/* Form Fields */
+/* ==========================================================================
+   Form Cards & Sections
+   ========================================================================== */
 
-.form-field {
-    margin-bottom: 20px;
+.project-card-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
 }
 
-.form-field:last-child {
+.form-section-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-xs);
+}
+
+.form-section-heading {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.form-section-heading h2 {
+    margin: 0 0 4px 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.form-section-heading p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ==========================================================================
+   Fields & Inputs
+   ========================================================================== */
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+.field-group:last-child {
     margin-bottom: 0;
 }
 
-.form-field label {
-    display: block;
-    margin-bottom: 8px;
-    color: #344054;
-    font-size: 14px;
+.field-group label {
+    font-size: 13px;
     font-weight: 600;
+    color: var(--text-secondary);
 }
 
-.form-field input,
-.form-field textarea,
-.form-field select {
+.field-group input,
+.field-group textarea,
+.field-group select {
     width: 100%;
-    box-sizing: border-box;
-    padding: 12px 14px;
-    border: 1px solid #d0d5dd;
-    border-radius: 10px;
+    padding: 11px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
     background: #ffffff;
-    color: #101828;
-    font-family: inherit;
+    color: var(--text-primary);
     font-size: 14px;
     outline: none;
-    transition: 0.2s ease;
+    transition: all 0.15s ease;
 }
 
-.form-field textarea {
+.field-group textarea {
     resize: vertical;
-    min-height: 130px;
-    line-height: 1.6;
+    min-height: 100px;
+    line-height: 1.55;
 }
 
-.form-field input::placeholder,
-.form-field textarea::placeholder {
-    color: #98a2b3;
+.field-group input:focus,
+.field-group textarea:focus,
+.field-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
-.form-field input:focus,
-.form-field textarea:focus,
-.form-field select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.form-row {
+.field-grid-2 {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 18px;
 }
 
-/* Tag Input */
+/* ==========================================================================
+   Tag Input Rows (Skills / Tech Stack)
+   ========================================================================== */
 
-.tag-input-row {
+.tag-entry-row {
     display: flex;
     gap: 10px;
+    margin-bottom: 14px;
 }
 
-.tag-input-row input {
+.tag-entry-row input {
     flex: 1;
-    min-width: 0;
-    padding: 12px 14px;
-    border: 1px solid #d0d5dd;
-    border-radius: 10px;
-    background: #ffffff;
-    color: #101828;
-    font-family: inherit;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
     font-size: 14px;
     outline: none;
+    transition: all 0.15s ease;
 }
 
-.tag-input-row input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+.tag-entry-row input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
-.tag-input-row button {
-    padding: 0 20px;
-    border: none;
-    border-radius: 10px;
-    background: #eef2ff;
-    color: #4338ca;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.tag-input-row button:hover {
-    background: #e0e7ff;
-}
-
-/* Tags */
-
-.tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 9px;
-    margin-top: 16px;
-}
-
-.tag-list span {
+.btn-tag-add {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 7px 10px 7px 12px;
-    border-radius: 20px;
-    background: #eef2ff;
-    color: #4338ca;
+    gap: 4px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background: var(--bg-subtle);
+    color: var(--text-primary);
     font-size: 13px;
     font-weight: 600;
-}
-
-.tag-list button {
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: #6366f1;
-    font-size: 17px;
-    line-height: 1;
     cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-.tag-list button:hover {
-    background: #c7d2fe;
+.btn-tag-add:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary-border);
 }
 
-/* Resources */
+.tags-display-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 32px;
+}
+
+.removable-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.removable-tag button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+.removable-tag button:hover {
+    background: rgba(79, 70, 229, 0.2);
+}
+
+/* ==========================================================================
+   Resources Input Grid
+   ========================================================================== */
 
 .resource-input-grid {
     display: grid;
     grid-template-columns: 1fr 1.5fr auto;
     gap: 10px;
+    margin-bottom: 16px;
 }
 
 .resource-input-grid input {
-    min-width: 0;
-    padding: 12px 14px;
-    border: 1px solid #d0d5dd;
-    border-radius: 10px;
-    background: #ffffff;
-    color: #101828;
-    font-family: inherit;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
     font-size: 14px;
     outline: none;
 }
 
 .resource-input-grid input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
-.resource-input-grid button {
-    padding: 0 18px;
-    border: none;
-    border-radius: 10px;
-    background: #eef2ff;
-    color: #4338ca;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.resource-input-grid button:hover {
-    background: #e0e7ff;
-}
-
-.resource-list {
+.added-resources-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 18px;
+    gap: 8px;
 }
 
-.resource-item {
+.added-resource-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 14px 16px;
-    border: 1px solid #eaecf0;
-    border-radius: 12px;
-    background: #f8f9fc;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-main);
+    border: 1px solid var(--border-light);
 }
 
-.resource-item strong {
-    display: block;
-    margin-bottom: 4px;
-    color: #344054;
-    font-size: 14px;
+.added-resource-info {
+    min-width: 0;
+    flex: 1;
 }
 
-.resource-item span {
+.added-resource-info strong {
     display: block;
-    max-width: 650px;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.added-resource-info span {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
     overflow: hidden;
-    color: #667085;
-    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.resource-item button {
-    padding: 7px 11px;
+.btn-remove-resource {
     border: none;
-    border-radius: 8px;
-    background: #fef3f2;
-    color: #b42318;
-    font-size: 12px;
-    font-weight: 600;
+    background: none;
+    color: var(--danger);
     cursor: pointer;
-    white-space: nowrap;
-}
-
-.resource-item button:hover {
-    background: #fee4e2;
-}
-
-/* Actions */
-
-.create-project-actions {
+    padding: 4px;
     display: flex;
+    align-items: center;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease;
+}
+
+.btn-remove-resource:hover {
+    background: var(--danger-bg);
+}
+
+/* ==========================================================================
+   Form Actions
+   ========================================================================== */
+
+.form-action-bar {
+    display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 12px;
-    padding: 4px 0 30px;
+    margin-top: 8px;
 }
 
-.cancel-button,
-.submit-project-button {
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-family: inherit;
+.btn-form-cancel {
+    padding: 11px 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background: #ffffff;
+    color: var(--text-secondary);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s ease;
+    transition: all 0.15s ease;
 }
 
-.cancel-button {
-    border: 1px solid #d0d5dd;
-    background: #ffffff;
-    color: #344054;
+.btn-form-cancel:hover {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
 }
 
-.cancel-button:hover {
-    background: #f9fafb;
-}
-
-.submit-project-button {
+.btn-form-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    border-radius: var(--radius-sm);
     border: none;
-    background: #4f46e5;
+    background: var(--primary-gradient);
     color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    transition: all 0.2s ease;
 }
 
-.submit-project-button:hover:not(:disabled) {
-    background: #4338ca;
+.btn-form-submit:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
     transform: translateY(-1px);
 }
 
-.submit-project-button:disabled {
-    opacity: 0.7;
+.btn-form-submit:disabled {
+    opacity: 0.65;
     cursor: not-allowed;
 }
 
-/* Responsive */
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
 
-@media (max-width: 800px) {
-    .create-project-page {
-        padding: 24px;
-    }
-
-    .create-project-header h1 {
-        font-size: 34px;
-    }
-
-    .form-row {
+@media (max-width: 768px) {
+    .field-grid-2 {
         grid-template-columns: 1fr;
-        gap: 0;
     }
 
     .resource-input-grid {
         grid-template-columns: 1fr;
-    }
-
-    .resource-input-grid button {
-        padding: 12px;
-    }
-}
-
-@media (max-width: 550px) {
-    .create-project-page {
-        padding: 18px;
-    }
-
-    .create-project-card {
-        padding: 20px;
-    }
-
-    .create-project-header h1 {
-        font-size: 30px;
-    }
-
-    .tag-input-row {
-        flex-direction: column;
-    }
-
-    .tag-input-row button {
-        padding: 11px;
-    }
-
-    .resource-item {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .resource-item button {
-        width: 100%;
-    }
-
-    .create-project-actions {
-        flex-direction: column-reverse;
-    }
-
-    .cancel-button,
-    .submit-project-button {
-        width: 100%;
     }
 }
