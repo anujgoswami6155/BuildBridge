@@ -9,11 +9,8 @@ import {
 } from "../controllers/tasks.controller.js";
 
 import authMiddleware from "../middlewares/auth.middleware.js";
-
 import ownercheckMiddleware from "../middlewares/ownercheck.middleware.js";
-
 import teamMemberMiddleware from "../middlewares/teamMember.middleware.js";
-
 import updateTaskMiddleware from "../middlewares/taskUpdate.middleware.js";
 
 const tasksRouter = express.Router();
@@ -40,7 +37,14 @@ tasksRouter.get(
     getKanbanController
 );
 
+// Support both PATCH and PUT for task updates
 tasksRouter.patch(
+    "/:projectId/:taskId",
+    authMiddleware,
+    updateTaskMiddleware,
+    updateTaskController
+);
+tasksRouter.put(
     "/:projectId/:taskId",
     authMiddleware,
     updateTaskMiddleware,

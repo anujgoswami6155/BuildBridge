@@ -19,7 +19,12 @@ import {
 } from "../controllers/project.controller.js";
 
 
-// Create a new project
+// Create a new project (support both POST / and POST /create)
+projectRouter.post(
+    "/",
+    authMiddleware,
+    createProjectController
+);
 projectRouter.post(
     "/create",
     authMiddleware,
@@ -59,8 +64,14 @@ projectRouter.get(
 );
 
 
-// Update an existing project
+// Update an existing project (support both PUT and PATCH)
 projectRouter.put(
+    "/:projectId",
+    authMiddleware,
+    ownerCheckMiddleware,
+    updateProjectController
+);
+projectRouter.patch(
     "/:projectId",
     authMiddleware,
     ownerCheckMiddleware,

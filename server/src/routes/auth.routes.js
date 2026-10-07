@@ -1,6 +1,13 @@
 import express from "express";
 
-import {registerController, loginController, meController, updateProfileController, getPublicProfileController, logoutController} from "../controllers/auth.controller.js";
+import {
+    registerController, 
+    loginController, 
+    meController, 
+    updateProfileController, 
+    getPublicProfileController, 
+    logoutController
+} from "../controllers/auth.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import registerMiddleware from "../middlewares/register.middleware.js";
 import loginMiddleware from "../middlewares/login.middleware.js";
@@ -16,6 +23,8 @@ authrouter.get("/me", authMiddleware, meController);
 
 authrouter.get("/profile/:userId", getPublicProfileController);
 
+// Support both PUT and PATCH for profile updates
+authrouter.put("/profile", authMiddleware, profileMiddleware, updateProfileController);
 authrouter.patch("/profile", authMiddleware, profileMiddleware, updateProfileController);
 
 authrouter.post("/logout", authMiddleware, logoutController);

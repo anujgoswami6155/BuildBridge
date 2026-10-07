@@ -27,7 +27,14 @@ commentsRouter.get(
     getCommentsController
 );
 
+// Support both PATCH and PUT for comment updates
 commentsRouter.patch(
+    "/:commentId",
+    authMiddleware,
+    commentAuthorMiddleware,
+    updateCommentController
+);
+commentsRouter.put(
     "/:commentId",
     authMiddleware,
     commentAuthorMiddleware,
