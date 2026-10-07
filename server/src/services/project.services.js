@@ -2,10 +2,10 @@ import Project from "../models/Project.models.js";
 import Application from "../models/Application.models.js";
 import Task from "../models/Task.models.js";
 import Comment from "../models/Comment.models.js";
+import { isValidObjectId, escapeRegex } from "../utils/validators.js";
 
 // Create a new project
 const createProject = async (projectData, userId) => {
-
     const {
         title,
         description,
@@ -17,28 +17,63 @@ const createProject = async (projectData, userId) => {
         recruitmentStatus
     } = projectData;
 
+    if (!title || typeof title !== "string" || title.trim().length < 3) {
+        throw new Error("Title is required and must be at least 3 characters long");
+    }
+
+    if (!description || typeof description !== "string") {
+        throw new Error("Description is required");
+    }
+
+    if (!category || typeof category !== "string") {
+        throw new Error("Category is required");
+    }
+
+    const parsedTeamSize = Number(teamSize);
+    if (isNaN(parsedTeamSize) || parsedTeamSize < 1) {
+        throw new Error("Team size must be at least 1");
+    }
+
+    // Validate resources if provided
+    if (resources !== undefined && resources !== null) {
+        if (!Array.isArray(resources)) {
+            throw new Error("Resources must be an array");
+        }
+        for (const resource of resources) {
+            if (typeof resource !== "object" || resource === null) {
+                throw new Error("Each resource must be an object");
+            }
+            if (typeof resource.title !== "string" || resource.title.trim().length === 0) {
+                throw new Error("Resource title is required");
+            }
+            if (typeof resource.url !== "string" || resource.url.trim().length === 0) {
+                throw new Error("Resource URL is required");
+            }
+        }
+    }
+
     const project = new Project({
-        title,
-        description,
-        category,
-        requiredSkills,
-        techStack,
-        resources,
-        teamSize,
-        recruitmentStatus,
-
-        // Always use the authenticated user
+        title: title.trim(),
+        description: description.trim(),
+        category: category.trim(),
+        requiredSkills: Array.isArray(requiredSkills) ? requiredSkills : [],
+        techStack: Array.isArray(techStack) ? techStack : [],
+        resources: Array.isArray(resources) ? resources : [],
+        teamSize: parsedTeamSize,
+        recruitmentStatus: recruitmentStatus || "open",
         owner: userId,
-
-        // A newly created project starts with no members
         teamMembers: []
     });
 
-    return await project.save();
+    const savedProject = await project.save();
+    return await savedProject.populate("owner", "name email");
 };
 
 // Update an existing project by its ID
 const updateProject = async (projectId, projectData) => {
+    if (!isValidObjectId(projectId)) {
+        throw new Error("Invalid project ID");
+    }
 
     const allowedFields = [
         "title",
@@ -65,33 +100,34 @@ const updateProject = async (projectId, projectData) => {
         throw new Error("No valid fields provided for update");
     }
 
+    if (updateData.title !== undefined) {
+        if (typeof updateData.title !== "string" || updateData.title.trim().length < 3) {
+            throw new Error("Title must be at least 3 characters long");
+        }
+        updateData.title = updateData.title.trim();
+    }
+
+    if (updateData.teamSize !== undefined) {
+        updateData.teamSize = Number(updateData.teamSize);
+        if (isNaN(updateData.teamSize) || updateData.teamSize < 1) {
+            throw new Error("Team size must be at least 1");
+        }
+    }
+
     // Validate resources if they are being updated
     if (updateData.resources !== undefined) {
-
         if (!Array.isArray(updateData.resources)) {
             throw new Error("Resources must be an array");
         }
 
         for (const resource of updateData.resources) {
-
-            if (
-                typeof resource !== "object" ||
-                resource === null
-            ) {
+            if (typeof resource !== "object" || resource === null) {
                 throw new Error("Each resource must be an object");
             }
-
-            if (
-                typeof resource.title !== "string" ||
-                resource.title.trim().length === 0
-            ) {
+            if (typeof resource.title !== "string" || resource.title.trim().length === 0) {
                 throw new Error("Resource title is required");
             }
-
-            if (
-                typeof resource.url !== "string" ||
-                resource.url.trim().length === 0
-            ) {
+            if (typeof resource.url !== "string" || resource.url.trim().length === 0) {
                 throw new Error("Resource URL is required");
             }
         }
@@ -101,10 +137,13 @@ const updateProject = async (projectId, projectData) => {
         projectId,
         updateData,
         {
-            new: true,
+            returnDocument: "after",
             runValidators: true
         }
-    );
+    )
+        .populate("owner", "name email")
+        .populate("teamMembers", "name email")
+        .exec();
 
     if (!project) {
         throw new Error("Project not found");
@@ -116,8 +155,14 @@ const updateProject = async (projectId, projectData) => {
 
 // Get a project by its ID
 const getProject = async (projectId) => {
+    if (!isValidObjectId(projectId)) {
+        throw new Error("Project not found");
+    }
 
-    const project = await Project.findById(projectId).exec();
+    const project = await Project.findById(projectId)
+        .populate("owner", "name email")
+        .populate("teamMembers", "name email")
+        .exec();
 
     if (!project) {
         throw new Error("Project not found");
@@ -128,34 +173,34 @@ const getProject = async (projectId) => {
 
 
 // Get all projects with optional filters
-const getProjects = async (filters) => {
-
+const getProjects = async (filters = {}) => {
     const query = {};
 
     // Search by title, description, required skills, or tech stack
-    if (filters.search) {
+    if (filters.search && typeof filters.search === "string" && filters.search.trim()) {
+        const safeSearch = escapeRegex(filters.search.trim());
         query.$or = [
             {
                 title: {
-                    $regex: filters.search,
+                    $regex: safeSearch,
                     $options: "i"
                 }
             },
             {
                 description: {
-                    $regex: filters.search,
+                    $regex: safeSearch,
                     $options: "i"
                 }
             },
             {
                 requiredSkills: {
-                    $regex: filters.search,
+                    $regex: safeSearch,
                     $options: "i"
                 }
             },
             {
                 techStack: {
-                    $regex: filters.search,
+                    $regex: safeSearch,
                     $options: "i"
                 }
             }
@@ -163,16 +208,29 @@ const getProjects = async (filters) => {
     }
 
     // Filter by category
-    if (filters.category) {
-        query.category = filters.category;
+    if (filters.category && typeof filters.category === "string" && filters.category.trim() && filters.category !== "all") {
+        query.category = { $regex: `^${escapeRegex(filters.category.trim())}$`, $options: "i" };
     }
 
-    return await Project.find(query).exec();
+    // Filter by status / recruitmentStatus
+    const status = filters.recruitmentStatus || filters.status;
+    if (status && typeof status === "string" && status.trim() && status !== "all") {
+        query.recruitmentStatus = status.trim().toLowerCase();
+    }
+
+    return await Project.find(query)
+        .populate("owner", "name email")
+        .populate("teamMembers", "name email")
+        .sort({ createdAt: -1 })
+        .exec();
 };
 
 
 // Remove a team member from a project
 const removeMember = async (projectId, userId) => {
+    if (!isValidObjectId(projectId) || !isValidObjectId(userId)) {
+        throw new Error("Invalid project ID or user ID");
+    }
 
     const project = await Project.findById(projectId).exec();
 
@@ -197,12 +255,26 @@ const removeMember = async (projectId, userId) => {
         member => member.toString() !== userId.toString()
     );
 
-    return await project.save();
+    // Unassign tasks assigned to this removed member
+    await Task.updateMany(
+        { project: projectId, assignedTo: userId },
+        { assignedTo: null }
+    );
+
+    await project.save();
+
+    return await project.populate([
+        { path: "owner", select: "name email" },
+        { path: "teamMembers", select: "name email" }
+    ]);
 };
 
 
 // Leave a project
 const leaveProject = async (projectId, userId) => {
+    if (!isValidObjectId(projectId) || !isValidObjectId(userId)) {
+        throw new Error("Invalid project ID or user ID");
+    }
 
     const project = await Project.findById(projectId).exec();
 
@@ -227,12 +299,26 @@ const leaveProject = async (projectId, userId) => {
         member => member.toString() !== userId.toString()
     );
 
-    return await project.save();
+    // Unassign tasks assigned to this departing member
+    await Task.updateMany(
+        { project: projectId, assignedTo: userId },
+        { assignedTo: null }
+    );
+
+    await project.save();
+
+    return await project.populate([
+        { path: "owner", select: "name email" },
+        { path: "teamMembers", select: "name email" }
+    ]);
 };
 
 
 // Get project workspace
 const getWorkspace = async (projectId) => {
+    if (!isValidObjectId(projectId)) {
+        throw new Error("Project not found");
+    }
 
     const project = await Project.findById(projectId)
         .populate("owner", "name email")
@@ -249,6 +335,9 @@ const getWorkspace = async (projectId) => {
 
 // Get project progress
 const getProjectProgress = async (projectId) => {
+    if (!isValidObjectId(projectId)) {
+        throw new Error("Project not found");
+    }
 
     // First verify that the project exists
     const project = await Project.findById(projectId).exec();
@@ -284,6 +373,9 @@ const getProjectProgress = async (projectId) => {
 
 // Delete a project and its associated data
 const deleteProject = async (projectId) => {
+    if (!isValidObjectId(projectId)) {
+        throw new Error("Project not found");
+    }
 
     const project = await Project.findById(projectId).exec();
 

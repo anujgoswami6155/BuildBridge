@@ -1,12 +1,14 @@
 import User from "../models/User.models.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { isValidObjectId } from "../utils/validators.js";
 
 // Register a new user
 const registerUser = async (name, email, password) => {
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Check if the user already exists
-    const existingUser = await User.findOne({ email: email }).exec();
+    const existingUser = await User.findOne({ email: normalizedEmail }).exec();
 
     if (existingUser !== null) {
         throw new Error("E-mail already exists");
@@ -16,19 +18,27 @@ const registerUser = async (name, email, password) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Create a new user
-    await User.create({
-        name: name,
-        email: email,
+    const user = await User.create({
+        name: name.trim(),
+        email: normalizedEmail,
         passwordHash: passwordHash
     });
 
-    return "User registered";
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    return {
+        message: "User registered successfully",
+        user: userObj
+    };
 };
 
 
 const loginUser = async (email, password) => {
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check if the user exists
-    const user = await User.findOne({ email: email }).exec();
+    const user = await User.findOne({ email: normalizedEmail }).exec();
 
     if (user === null) {
         throw new Error("Invalid email or password");
@@ -45,14 +55,21 @@ const loginUser = async (email, password) => {
     const token = jwt.sign(
         { userId: user._id },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "7d" }
     );
 
-    return token;
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+
+    return { token, user: userObj };
 };
 
 
 const getCurrentUser = async (userId) => {
+    if (!isValidObjectId(userId)) {
+        throw new Error("User not found");
+    }
+
     // Fetch the user by ID
     const user = await User.findById(userId)
         .select('-passwordHash')
@@ -67,6 +84,10 @@ const getCurrentUser = async (userId) => {
 
 
 const updateUserProfile = async (userId, profileData) => {
+    if (!isValidObjectId(userId)) {
+        throw new Error("User not found");
+    }
+
     // Find the user
     const user = await User.findById(userId).exec();
 
@@ -76,7 +97,7 @@ const updateUserProfile = async (userId, profileData) => {
 
     // Update profile fields
     if (profileData.name !== undefined) {
-        user.name = profileData.name;
+        user.name = profileData.name.trim();
     }
 
     if (profileData.bio !== undefined) {
@@ -102,12 +123,17 @@ const updateUserProfile = async (userId, profileData) => {
     await user.save();
 
     // Don't return the password hash
-    user.passwordHash = undefined;
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
 
-    return user;
+    return userObj;
 };
 
 const getPublicProfile = async (userId) => {
+    if (!isValidObjectId(userId)) {
+        throw new Error("User not found");
+    }
+
     // Fetch the user by ID
     const user = await User.findById(userId)
         .select('name bio skills education github linkedIn createdAt')

@@ -2,9 +2,12 @@ import User from "../models/User.models.js";
 import Project from "../models/Project.models.js";
 import Task from "../models/Task.models.js";
 import Comment from "../models/Comment.models.js";
-
+import { isValidObjectId } from "../utils/validators.js";
 
 export const getDashboard = async (userId) => {
+    if (!isValidObjectId(userId)) {
+        throw new Error("Invalid user ID");
+    }
 
     // Check if the user exists
     const user = await User.findById(userId)
@@ -15,22 +18,25 @@ export const getDashboard = async (userId) => {
         throw new Error("User not found");
     }
 
-
     // Find projects owned by the user
     const ownedProjects = await Project.find({
         owner: userId
     })
         .select("title description category recruitmentStatus teamSize teamMembers createdAt updatedAt")
+        .populate("owner", "name email")
+        .populate("teamMembers", "name email")
+        .sort({ updatedAt: -1 })
         .exec();
-
 
     // Find projects where the user is a team member
     const memberProjects = await Project.find({
         teamMembers: userId
     })
         .select("title description category recruitmentStatus teamSize teamMembers createdAt updatedAt")
+        .populate("owner", "name email")
+        .populate("teamMembers", "name email")
+        .sort({ updatedAt: -1 })
         .exec();
-
 
     // Find tasks assigned to the user
     const tasks = await Task.find({
@@ -38,8 +44,8 @@ export const getDashboard = async (userId) => {
     })
         .select("title description project status assignedTo createdAt updatedAt")
         .populate("project", "title")
+        .sort({ updatedAt: -1 })
         .exec();
-
 
     // Find recent comments made by the user
     const recentActivity = await Comment.find({
@@ -50,7 +56,6 @@ export const getDashboard = async (userId) => {
         .sort({ createdAt: -1 })
         .limit(10)
         .exec();
-
 
     return {
         user: user,
