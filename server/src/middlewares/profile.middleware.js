@@ -13,8 +13,10 @@ const profileMiddleware = (req, res, next) => {
     // Reject unknown fields
     for (const field of providedFields) {
         if (!allowedFields.includes(field)) {
+            const msg = `Invalid profile field: ${field}`;
             return res.status(400).json({
-                error: `Invalid profile field: ${field}`
+                message: msg,
+                error: msg
             });
         }
     }
@@ -24,8 +26,10 @@ const profileMiddleware = (req, res, next) => {
     // Validate name
     if (name !== undefined) {
         if (typeof name !== "string" || name.trim().length < 3 || name.trim().length > 50) {
+            const msg = "Name must be between 3 and 50 characters";
             return res.status(400).json({
-                error: "Name must be between 3 and 50 characters"
+                message: msg,
+                error: msg
             });
         }
     }
@@ -33,8 +37,10 @@ const profileMiddleware = (req, res, next) => {
     // Validate bio
     if (bio !== undefined) {
         if (typeof bio !== "string" || bio.trim().length > 500) {
+            const msg = "Bio must be a string with a maximum of 500 characters";
             return res.status(400).json({
-                error: "Bio must be a string with a maximum of 500 characters"
+                message: msg,
+                error: msg
             });
         }
     }
@@ -45,8 +51,10 @@ const profileMiddleware = (req, res, next) => {
             !Array.isArray(skills) ||
             !skills.every(skill => typeof skill === "string")
         ) {
+            const msg = "Skills must be an array of strings";
             return res.status(400).json({
-                error: "Skills must be an array of strings"
+                message: msg,
+                error: msg
             });
         }
     }
@@ -57,8 +65,10 @@ const profileMiddleware = (req, res, next) => {
             typeof education !== "string" ||
             education.trim().length > 200
         ) {
+            const msg = "Education must be a string with a maximum of 200 characters";
             return res.status(400).json({
-                error: "Education must be a string with a maximum of 200 characters"
+                message: msg,
+                error: msg
             });
         }
     }
@@ -66,8 +76,10 @@ const profileMiddleware = (req, res, next) => {
     // Validate GitHub
     if (github !== undefined) {
         if (typeof github !== "string") {
+            const msg = "GitHub must be a string";
             return res.status(400).json({
-                error: "GitHub must be a string"
+                message: msg,
+                error: msg
             });
         }
     }
@@ -75,16 +87,20 @@ const profileMiddleware = (req, res, next) => {
     // Validate LinkedIn
     if (linkedIn !== undefined) {
         if (typeof linkedIn !== "string") {
+            const msg = "LinkedIn must be a string";
             return res.status(400).json({
-                error: "LinkedIn must be a string"
+                message: msg,
+                error: msg
             });
         }
     }
 
     // Make sure at least one field is provided
     if (providedFields.length === 0) {
+        const msg = "At least one profile field is required";
         return res.status(400).json({
-            error: "At least one profile field is required"
+            message: msg,
+            error: msg
         });
     }
 

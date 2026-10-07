@@ -1,9 +1,16 @@
 import Project from "../models/Project.models.js";
 import Application from "../models/Application.models.js";
+import { isValidObjectId } from "../utils/validators.js";
 
 const applicationOwnerMiddleware = async (req, res, next) => {
     const userId = req.userId;
     const applicationId = req.params.applicationId;
+
+    if (!isValidObjectId(applicationId)) {
+        return res.status(400).json({
+            message: "Invalid application ID"
+        });
+    }
 
     try {
         const application = await Application.findById(applicationId).exec();
@@ -22,17 +29,19 @@ const applicationOwnerMiddleware = async (req, res, next) => {
             });
         }
 
-        if (project.owner.toString() !== userId) {
+        if (project.owner.toString() !== userId.toString()) {
             return res.status(403).json({
                 message: "You are not the owner of this project"
             });
         }
 
+        req.application = application;
+        req.project = project;
         next();
 
     } catch (error) {
         return res.status(500).json({
-            message: "Error checking application ownership"
+            message: error.message || "Error checking application ownership"
         });
     }
 };

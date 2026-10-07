@@ -1,9 +1,16 @@
 import Comment from "../models/Comment.models.js";
+import { isValidObjectId } from "../utils/validators.js";
 
 const commentAuthorMiddleware = async (req, res, next) => {
     try {
         const { commentId } = req.params;
         const userId = req.userId;
+
+        if (!isValidObjectId(commentId)) {
+            return res.status(400).json({
+                message: "Invalid comment ID"
+            });
+        }
 
         const comment = await Comment.findById(commentId).exec();
 
@@ -20,14 +27,11 @@ const commentAuthorMiddleware = async (req, res, next) => {
         }
 
         req.comment = comment;
-
         next();
 
     } catch (error) {
-        console.error(error);
-
         return res.status(500).json({
-            message: "Internal server error"
+            message: error.message || "Internal server error"
         });
     }
 };

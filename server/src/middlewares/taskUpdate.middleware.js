@@ -1,10 +1,17 @@
 import Task from "../models/Task.models.js";
 import Project from "../models/Project.models.js";
+import { isValidObjectId } from "../utils/validators.js";
 
 const updateTaskMiddleware = async (req, res, next) => {
     try {
         const { projectId, taskId } = req.params;
         const userId = req.userId;
+
+        if (!isValidObjectId(projectId) || !isValidObjectId(taskId)) {
+            return res.status(400).json({
+                message: "Invalid project ID or task ID."
+            });
+        }
 
         // Find project
         const project = await Project.findById(projectId);
@@ -25,7 +32,7 @@ const updateTaskMiddleware = async (req, res, next) => {
         }
 
         // Make sure the task belongs to the specified project
-        if (task.project.toString() !== projectId) {
+        if (task.project.toString() !== projectId.toString()) {
             return res.status(400).json({
                 message: "Task does not belong to the specified project."
             });
@@ -39,8 +46,13 @@ const updateTaskMiddleware = async (req, res, next) => {
             task.assignedTo &&
             task.assignedTo.toString() === userId.toString();
 
-        // Only owner or assigned member can update
-        if (!isOwner && !isAssignedMember) {
+        // Check if requester is a project team member
+        const isTeamMember = project.teamMembers.some(
+            (member) => member.toString() === userId.toString()
+        );
+
+        // Owner, assigned member, or any project team member can update
+        if (!isOwner && !isAssignedMember && !isTeamMember) {
             return res.status(403).json({
                 message: "You do not have permission to update this task."
             });
@@ -55,7 +67,7 @@ const updateTaskMiddleware = async (req, res, next) => {
 
     } catch (error) {
         return res.status(500).json({
-            message: "Internal server error."
+            message: error.message || "Internal server error."
         });
     }
 };
