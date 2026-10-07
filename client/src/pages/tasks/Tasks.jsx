@@ -17,7 +17,10 @@ import {
     CheckCircle2, 
     AlertCircle, 
     X,
-    Save
+    Save,
+    ArrowRight,
+    Check,
+    Lock
 } from "lucide-react";
 import "./Tasks.css";
 
@@ -44,9 +47,11 @@ function Tasks() {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        assignedTo: "",
-        status: "todo"
+        assignedTo: ""
     });
+
+    // Quick status transition loading state
+    const [statusLoadingId, setStatusLoadingId] = useState("");
 
     // Edit task state
     const [editingTaskId, setEditingTaskId] = useState(null);
@@ -117,11 +122,11 @@ function Tasks() {
         try {
             setCreateLoading(true);
 
+            // New tasks always start in To Do without prompting for options
             await createTask(projectId, {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
-                assignedTo: formData.assignedTo || null,
-                status: formData.status
+                assignedTo: formData.assignedTo || null
             });
 
             const updatedKanban = await getKanban(projectId);
@@ -130,11 +135,10 @@ function Tasks() {
             setFormData({
                 title: "",
                 description: "",
-                assignedTo: "",
-                status: "todo"
+                assignedTo: ""
             });
 
-            setCreateSuccess("Task created successfully.");
+            setCreateSuccess("Task created in To Do.");
             setShowCreateForm(false);
         } catch (err) {
             setCreateError(
@@ -142,6 +146,35 @@ function Tasks() {
             );
         } finally {
             setCreateLoading(false);
+        }
+    };
+
+    const handleQuickStatusChange = async (task, nextStatus) => {
+        // Enforce transition rules
+        if (task.status === "completed") {
+            setError("Completed tasks are final and cannot change status.");
+            return;
+        }
+
+        if (task.status === "in-progress" && nextStatus === "todo") {
+            setError("Tasks in progress cannot be moved back to To Do.");
+            return;
+        }
+
+        try {
+            setStatusLoadingId(task._id);
+            setError("");
+            setCreateSuccess("");
+
+            await updateTask(projectId, task._id, { status: nextStatus });
+            const updatedKanban = await getKanban(projectId);
+            setKanban(updatedKanban.kanban);
+            setCreateSuccess(`Task moved to ${nextStatus === "in-progress" ? "In Progress" : "Completed"}.`);
+        } catch (err) {
+            console.error("Failed to update status:", err);
+            setError(err.response?.data?.message || "Failed to update task status.");
+        } finally {
+            setStatusLoadingId("");
         }
     };
 
@@ -184,6 +217,18 @@ function Tasks() {
 
         if (isOwner && !editFormData.title.trim()) {
             setEditError("Task title is required.");
+            return;
+        }
+
+        // Rule: In-progress cannot move back to todo
+        if (task.status === "in-progress" && editFormData.status === "todo") {
+            setEditError("Tasks in progress cannot be moved back to To Do.");
+            return;
+        }
+
+        // Rule: Completed tasks cannot change status
+        if (task.status === "completed" && editFormData.status !== "completed") {
+            setEditError("Completed tasks are final and cannot change status.");
             return;
         }
 
@@ -232,10 +277,7 @@ function Tasks() {
             const updatedKanban = await getKanban(projectId);
             setKanban(updatedKanban.kanban);
 
-            if (editingTaskId === task._id) {
-                cancelEditingTask();
-            }
-            setCreateSuccess("Task deleted.");
+            setCreateSuccess("Task deleted successfully.");
         } catch (err) {
             setDeleteError(
                 err.response?.data?.message || "Failed to delete task."
@@ -248,19 +290,23 @@ function Tasks() {
     if (loading) {
         return (
             <div className="page-loader">
-                <div className="spinner spinner-primary" style={{ width: "32px", height: "32px", borderWidth: "3px" }}></div>
-                <p>Loading Kanban board...</p>
+                <div
+                    className="spinner spinner-primary"
+                    style={{ width: "32px", height: "32px", borderWidth: "3px" }}
+                ></div>
+                <p>Loading project workspace...</p>
             </div>
         );
     }
 
-    if (error) {
+    if (error && !project) {
         return (
             <div className="tasks-page">
-                <Link to={`/projects/${projectId}`} className="back-to-projects">
+                <Link to="/projects" className="back-to-projects">
                     <ArrowLeft size={16} />
-                    <span>Back to Project</span>
+                    <span>Back to Projects</span>
                 </Link>
+
                 <div className="auth-error" style={{ maxWidth: "600px", margin: "40px auto" }}>
                     <AlertCircle size={18} />
                     <span>{error}</span>
@@ -269,38 +315,43 @@ function Tasks() {
         );
     }
 
-    const columns = [
+    const kanbanColumns = [
         {
-            key: "todo",
+            id: "todo",
             title: "To Do",
+            badgeClass: "badge-todo",
             tasks: kanban.todo || []
         },
         {
-            key: "inProgress",
+            id: "inProgress",
             title: "In Progress",
+            badgeClass: "badge-in-progress",
             tasks: kanban.inProgress || []
         },
         {
-            key: "completed",
+            id: "completed",
             title: "Completed",
+            badgeClass: "badge-completed",
             tasks: kanban.completed || []
         }
     ];
 
     return (
         <div className="tasks-page">
-            <Link to={`/projects/${projectId}`} className="back-to-projects">
-                <ArrowLeft size={16} />
-                <span>Back to {project?.title || "Project"}</span>
-            </Link>
+            {/* Top Navigation Back Link */}
+            <div style={{ marginBottom: "20px" }}>
+                <Link to={`/projects/${projectId}`} className="back-to-projects">
+                    <ArrowLeft size={16} />
+                    <span>Back to Project Details</span>
+                </Link>
+            </div>
 
+            {/* Header */}
             <div className="tasks-header-row">
                 <div>
-                    <p className="tasks-eyebrow">
-                        WORKSPACE • {project?.title?.toUpperCase() || "PROJECT"}
-                    </p>
-                    <h1>Kanban Board</h1>
-                    <p>Track sprints, manage task delegation, and coordinate project progress.</p>
+                    <p className="tasks-eyebrow">PROJECT WORKSPACE</p>
+                    <h1>{project?.title} — Tasks</h1>
+                    <p>Track sprints, manage backlog items, and ship deliverables together.</p>
                 </div>
 
                 {isOwner && (
@@ -320,13 +371,14 @@ function Tasks() {
                         ) : (
                             <>
                                 <Plus size={16} />
-                                <span>Create Task</span>
+                                <span>Assign New Task</span>
                             </>
                         )}
                     </button>
                 )}
             </div>
 
+            {/* Feedback Notifications */}
             {createSuccess && (
                 <div className="auth-success" style={{ marginBottom: "20px" }}>
                     <CheckCircle2 size={16} />
@@ -334,17 +386,17 @@ function Tasks() {
                 </div>
             )}
 
-            {deleteError && (
+            {(error || deleteError) && (
                 <div className="auth-error" style={{ marginBottom: "20px" }}>
                     <AlertCircle size={16} />
-                    <span>{deleteError}</span>
+                    <span>{error || deleteError}</span>
                 </div>
             )}
 
-            {/* Create Task Form */}
+            {/* Create Task Panel (Owner only) */}
             {isOwner && showCreateForm && (
                 <div className="create-task-panel">
-                    <h2 className="panel-title">Add New Task</h2>
+                    <h2 className="panel-title">Assign New Task (Starts in To Do)</h2>
 
                     {createError && (
                         <div className="auth-error" style={{ marginBottom: "16px" }}>
@@ -379,37 +431,29 @@ function Tasks() {
                             />
                         </div>
 
-                        <div className="field-grid-2">
-                            <div className="field-group">
-                                <label htmlFor="assignedTo">Assign Teammate</label>
-                                <select
-                                    id="assignedTo"
-                                    name="assignedTo"
-                                    value={formData.assignedTo}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Unassigned</option>
-                                    {project?.teamMembers?.map((member) => (
-                                        <option key={member._id} value={member._id}>
-                                            {member.name} ({member.email || "Member"})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="field-group">
-                                <label htmlFor="status">Initial Status</label>
-                                <select
-                                    id="status"
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                >
-                                    <option value="todo">To Do</option>
-                                    <option value="in-progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-                            </div>
+                        <div className="field-group">
+                            <label htmlFor="assignedTo">Assign Teammate</label>
+                            <select
+                                id="assignedTo"
+                                name="assignedTo"
+                                value={formData.assignedTo}
+                                onChange={handleChange}
+                            >
+                                <option value="">Unassigned</option>
+                                {project?.owner && (
+                                    <option value={project.owner._id || project.owner}>
+                                        {project.owner.name || "Owner"} (Project Owner)
+                                    </option>
+                                )}
+                                {project?.teamMembers?.map((member) => (
+                                    <option key={member._id || member} value={member._id || member}>
+                                        {member.name || "Member"} ({member.email || "Member"})
+                                    </option>
+                                ))}
+                            </select>
+                            <span style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                                New tasks will automatically start in <strong>To Do</strong>.
+                            </span>
                         </div>
 
                         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
@@ -433,7 +477,7 @@ function Tasks() {
                                 ) : (
                                     <>
                                         <Plus size={15} />
-                                        <span>Add Task</span>
+                                        <span>Create in To Do</span>
                                     </>
                                 )}
                             </button>
@@ -444,19 +488,18 @@ function Tasks() {
 
             {/* Kanban Columns */}
             <div className="kanban-board-grid">
-                {columns.map((column) => (
-                    <div className="kanban-col" key={column.key}>
+                {kanbanColumns.map((column) => (
+                    <div className="kanban-col" key={column.id}>
                         <div className="kanban-col-header">
-                            <div className="col-header-title">
-                                <span className={`col-dot ${column.key}`}></span>
-                                <span>{column.title}</span>
+                            <div className="kanban-col-title-group">
+                                <h2>{column.title}</h2>
+                                <span className={`kanban-count-pill ${column.badgeClass}`}>
+                                    {column.tasks.length}
+                                </span>
                             </div>
-                            <span className="col-count-badge">
-                                {column.tasks.length}
-                            </span>
                         </div>
 
-                        <div className="tasks-container-list">
+                        <div className="kanban-task-list">
                             {column.tasks.length === 0 ? (
                                 <div className="kanban-empty-notice">
                                     No tasks in {column.title}
@@ -487,13 +530,50 @@ function Tasks() {
                                                         )}
 
                                                         <div className="task-card-button-row">
-                                                            <button
-                                                                className="btn-task-action-icon"
-                                                                onClick={() => startEditingTask(task)}
-                                                                title="Edit Task"
-                                                            >
-                                                                <Edit3 size={13} />
-                                                            </button>
+                                                            {/* Quick Advance Forward Actions */}
+                                                            {task.status === "todo" && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-task-advance"
+                                                                    onClick={() => handleQuickStatusChange(task, "in-progress")}
+                                                                    disabled={statusLoadingId === task._id}
+                                                                    title="Start task (Move to In Progress)"
+                                                                >
+                                                                    <span>Start</span>
+                                                                    <ArrowRight size={11} />
+                                                                </button>
+                                                            )}
+
+                                                            {task.status === "in-progress" && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn-task-advance success"
+                                                                    onClick={() => handleQuickStatusChange(task, "completed")}
+                                                                    disabled={statusLoadingId === task._id}
+                                                                    title="Mark as completed (Final)"
+                                                                >
+                                                                    <span>Complete</span>
+                                                                    <Check size={11} strokeWidth={2.5} />
+                                                                </button>
+                                                            )}
+
+                                                            {task.status === "completed" && (
+                                                                <span className="task-completed-badge" title="Completed — Final status">
+                                                                    <CheckCircle2 size={12} />
+                                                                    <span>Done</span>
+                                                                </span>
+                                                            )}
+
+                                                            {/* Edit button: shown if not completed OR if owner */}
+                                                            {(task.status !== "completed" || isOwner) && (
+                                                                <button
+                                                                    className="btn-task-action-icon"
+                                                                    onClick={() => startEditingTask(task)}
+                                                                    title={task.status === "completed" ? "Edit Details (Status Locked)" : "Edit Task"}
+                                                                >
+                                                                    {task.status === "completed" ? <Lock size={12} /> : <Edit3 size={13} />}
+                                                                </button>
+                                                            )}
 
                                                             {isOwner && (
                                                                 <button
@@ -536,24 +616,59 @@ function Tasks() {
                                                                 onChange={handleEditChange}
                                                             >
                                                                 <option value="">Unassigned</option>
+                                                                {project?.owner && (
+                                                                    <option value={project.owner._id || project.owner}>
+                                                                        {project.owner.name || "Owner"} (Project Owner)
+                                                                    </option>
+                                                                )}
                                                                 {project?.teamMembers?.map((member) => (
-                                                                    <option key={member._id} value={member._id}>
-                                                                        {member.name}
+                                                                    <option key={member._id || member} value={member._id || member}>
+                                                                        {member.name || "Member"}
                                                                     </option>
                                                                 ))}
                                                             </select>
                                                         </>
                                                     )}
 
-                                                    <select
-                                                        name="status"
-                                                        value={editFormData.status}
-                                                        onChange={handleEditChange}
-                                                    >
-                                                        <option value="todo">To Do</option>
-                                                        <option value="in-progress">In Progress</option>
-                                                        <option value="completed">Completed</option>
-                                                    </select>
+                                                    <div className="field-group" style={{ margin: "4px 0" }}>
+                                                        <label htmlFor={`edit-status-${task._id}`} style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-secondary)" }}>
+                                                            Status {task.status === "completed" && "(Final / Locked)"}
+                                                        </label>
+                                                        <select
+                                                            id={`edit-status-${task._id}`}
+                                                            name="status"
+                                                            value={editFormData.status}
+                                                            onChange={handleEditChange}
+                                                            disabled={task.status === "completed"}
+                                                        >
+                                                            {task.status === "todo" && (
+                                                                <>
+                                                                    <option value="todo">To Do</option>
+                                                                    <option value="in-progress">In Progress</option>
+                                                                    <option value="completed">Completed</option>
+                                                                </>
+                                                            )}
+                                                            {task.status === "in-progress" && (
+                                                                <>
+                                                                    <option value="in-progress">In Progress</option>
+                                                                    <option value="completed">Completed</option>
+                                                                </>
+                                                            )}
+                                                            {task.status === "completed" && (
+                                                                <option value="completed">Completed (Final)</option>
+                                                            )}
+                                                        </select>
+                                                        {task.status === "in-progress" && (
+                                                            <span style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "2px" }}>
+                                                                Cannot move back to To Do
+                                                            </span>
+                                                        )}
+                                                        {task.status === "completed" && (
+                                                            <span style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "2px" }}>
+                                                                Completed tasks are final
+                                                            </span>
+                                                        )}
+                                                    </div>
 
                                                     {editError && (
                                                         <p style={{ color: "var(--danger)", fontSize: "11px", margin: 0 }}>

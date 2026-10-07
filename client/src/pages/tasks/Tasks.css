@@ -296,6 +296,65 @@
     border-color: var(--primary);
 }
 
+.task-inline-edit select:disabled {
+    background-color: var(--bg-secondary);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+/* Quick Advance & Completion Badges */
+.btn-task-advance {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--primary-border);
+    background: var(--primary-light);
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-task-advance:hover:not(:disabled) {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(79, 70, 229, 0.25);
+}
+
+.btn-task-advance.success {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.btn-task-advance.success:hover:not(:disabled) {
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.3);
+}
+
+.btn-task-advance:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.task-completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
 /* ==========================================================================
    Responsive
    ========================================================================== */
