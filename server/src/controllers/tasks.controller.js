@@ -12,10 +12,12 @@ const createTaskController = async (req, res) => {
         const { projectId } = req.params;
 
         const task = await createTask(projectId, req.body);
+        const taskObj = task.toObject ? task.toObject() : task;
 
         return res.status(201).json({
             message: "Task created successfully.",
-            task
+            task,
+            ...taskObj
         });
     } catch (error) {
         return res.status(400).json({
@@ -67,7 +69,7 @@ const updateTaskController = async (req, res) => {
             });
         }
 
-        // Assigned member can only update status
+        // Team members who are not owner can only update status
         if (!req.isOwner) {
             if (
                 requestedFields.length !== 1 ||
@@ -87,10 +89,12 @@ const updateTaskController = async (req, res) => {
         if (status !== undefined) updateData.status = status;
 
         const task = await updateTask(req.task._id, updateData);
+        const taskObj = task.toObject ? task.toObject() : task;
 
         return res.status(200).json({
             message: "Task updated successfully.",
-            task
+            task,
+            ...taskObj
         });
 
     } catch (error) {
@@ -105,10 +109,11 @@ const deleteTaskController = async (req, res) => {
     try {
         const { projectId, taskId } = req.params;
 
-        await deleteTask(projectId, taskId);
+        const deleted = await deleteTask(projectId, taskId);
 
         return res.status(200).json({
-            message: "Task deleted successfully."
+            message: "Task deleted successfully.",
+            task: deleted
         });
 
     } catch (error) {

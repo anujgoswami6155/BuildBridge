@@ -15,7 +15,8 @@ const registerController = async (req, res) => {
         const result = await registerUser(name, email, password);
 
         res.status(201).json({
-            message: result
+            message: typeof result === "object" ? result.message : result,
+            user: typeof result === "object" ? result.user : undefined
         });
 
     } catch (error) {
@@ -30,11 +31,12 @@ const loginController = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const token = await loginUser(email, password);
+        const { token, user } = await loginUser(email, password);
 
         res.status(200).json({
             message: "Login successful",
-            token: token
+            token: token,
+            user: user
         });
 
     } catch (error) {

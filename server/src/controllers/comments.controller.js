@@ -7,10 +7,12 @@ const createCommentController = async (req, res) => {
         const author = req.userId;
 
         const comment = await createComment(projectId, content, author);
+        const commentObj = comment.toObject ? comment.toObject() : comment;
 
         return res.status(201).json({
             message: "Comment created successfully",
-            comment
+            comment,
+            ...commentObj
         });
     } catch (error) {
         return res.status(400).json({
@@ -55,17 +57,19 @@ const updateCommentController = async (req, res) => {
             });
         }
 
-        if (!content || content.trim().length === 0) {
+        if (!content || typeof content !== "string" || content.trim().length === 0) {
             return res.status(400).json({
                 message: "Comment content is required."
             });
         }
 
         const comment = await updateComment(commentId, content);
+        const commentObj = comment.toObject ? comment.toObject() : comment;
 
         return res.status(200).json({
             message: "Comment updated successfully",
-            comment
+            comment,
+            ...commentObj
         });
 
     } catch (error) {

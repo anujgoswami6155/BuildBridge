@@ -16,8 +16,13 @@ const createProjectController = async (req, res) => {
         const userId = req.userId;
 
         const project = await createProject(req.body, userId);
+        const projectObj = project.toObject ? project.toObject() : project;
 
-        return res.status(201).json(project);
+        return res.status(201).json({
+            message: "Project created successfully",
+            project: project,
+            ...projectObj
+        });
 
     } catch (error) {
         return res.status(400).json({
@@ -32,8 +37,13 @@ const updateProjectController = async (req, res) => {
         const { projectId } = req.params;
 
         const project = await updateProject(projectId, req.body);
+        const projectObj = project.toObject ? project.toObject() : project;
 
-        return res.status(200).json(project);
+        return res.status(200).json({
+            message: "Project updated successfully",
+            project: project,
+            ...projectObj
+        });
 
     } catch (error) {
         return res.status(400).json({
@@ -79,10 +89,11 @@ const removeMemberController = async (req, res) => {
     try {
         const { projectId, userId } = req.params;
 
-        await removeMember(projectId, userId);
+        const updatedProject = await removeMember(projectId, userId);
 
         return res.status(200).json({
-            message: "Team member removed successfully"
+            message: "Team member removed successfully",
+            project: updatedProject
         });
 
     } catch (error) {
@@ -98,10 +109,11 @@ const leaveProjectController = async (req, res) => {
         const { projectId } = req.params;
         const userId = req.userId;
 
-        await leaveProject(projectId, userId);
+        const updatedProject = await leaveProject(projectId, userId);
 
         return res.status(200).json({
-            message: "You have left the project successfully"
+            message: "You have left the project successfully",
+            project: updatedProject
         });
 
     } catch (error) {

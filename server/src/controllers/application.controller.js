@@ -10,8 +10,13 @@ const applyController = async (req, res) => {
         const userId = req.userId;
 
         const application = await applyToProject(projectId, userId);
+        const appObj = application.toObject ? application.toObject() : application;
 
-        res.status(201).json(application);
+        res.status(201).json({
+            message: "Application submitted successfully",
+            application,
+            ...appObj
+        });
 
     } catch (error) {
         res.status(400).json({
@@ -50,8 +55,13 @@ const updateApplicationStatusController = async (req, res) => {
             applicationId,
             status
         );
+        const appObj = application.toObject ? application.toObject() : application;
 
-        res.status(200).json(application);
+        res.status(200).json({
+            message: `Application ${status} successfully`,
+            application,
+            ...appObj
+        });
 
     } catch (error) {
         res.status(400).json({
