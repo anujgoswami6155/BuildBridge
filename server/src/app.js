@@ -26,7 +26,7 @@ app.use(express.json());
 const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:3000"
+    "http://localhost:3000",
 ];
 
 if (process.env.CLIENT_URL) {
@@ -36,19 +36,21 @@ if (process.env.CLIENT_URL) {
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow requests with no origin (like mobile apps, curl, Postman)
+            // Allow requests without an Origin header (e.g. curl/Postman)
             if (!origin || allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
-            // Allow all local dev ports if needed
-            if (/^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) {
+
+            // Allow local development ports
+            if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
                 return callback(null, true);
             }
-            return callback(null, true);
+
+            return callback(new Error("Origin not allowed by CORS"));
         },
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"]
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
@@ -98,7 +100,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]).toLowerCase() ==
 
 if (process.env.NODE_ENV !== "test" && isMain) {
     connectDB().then(() => {
-        app.listen(PORT, () => {
+        app.listen(PORT, "0.0.0.0", () => {
             console.log(`Server running on port ${PORT}`);
         });
     });
