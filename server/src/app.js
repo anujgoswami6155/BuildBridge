@@ -1,10 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
 
-import connectDB from "./config/db.js";
 import authrouter from "./routes/auth.routes.js";
 import projectRouter from "./routes/project.routes.js";
 import applicationRouter from "./routes/application.routes.js";
@@ -16,8 +13,6 @@ dotenv.config();
 
 // Create an Express Application   
 const app = express();
-
-const PORT = process.env.PORT || 5000;
 
 // JSON Body parsing
 app.use(express.json());
@@ -94,18 +89,5 @@ app.use((err, req, res, next) => {
         message: err.message || "Internal server error"
     });
 });
-
-// Starts the server if run directly (and not during tests)
-const isMain = process.argv[1] && path.resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase();
-
-if (process.env.NODE_ENV !== "test" && isMain) {
-    connectDB().then(() => {
-        app.listen(PORT, "0.0.0.0", () => {
-            console.log(`Server running on port ${PORT}`);
-        });
-    });
-} else if (process.env.NODE_ENV !== "test_no_db" && !isMain) {
-    connectDB();
-}
 
 export default app;

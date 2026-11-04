@@ -1,3 +1,4 @@
+import "dotenv/config";
 import test, { describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
@@ -7,6 +8,7 @@ import Project from "../src/models/Project.models.js";
 import Task from "../src/models/Task.models.js";
 import Application from "../src/models/Application.models.js";
 import Comment from "../src/models/Comment.models.js";
+import connectDB from "../src/config/db.js";
 
 describe("BuildBridge API Integration Test Suite", () => {
     let server;
@@ -36,20 +38,32 @@ describe("BuildBridge API Integration Test Suite", () => {
     let testCommentId = "";
 
     before(async () => {
-        // Wait for mongoose connection if not ready
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGO_URI);
-        }
+    const testUri = process.env.MONGO_TEST_URI;
 
-        // Start server on random available port
-        await new Promise((resolve) => {
-            server = app.listen(0, () => {
-                const port = server.address().port;
-                baseUrl = `http://127.0.0.1:${port}`;
-                resolve();
-            });
+    if (!testUri) {
+        throw new Error("MONGO_TEST_URI is not configured");
+    }
+
+    // Safety check: tests must only use the dedicated test database.
+    const databaseName = new URL(testUri).pathname.replace(/^\/+/, "");
+
+    if (databaseName !== "buildbridge_test") {
+        throw new Error(
+            `Unsafe test database: expected buildbridge_test, received ${databaseName}`
+        );
+    }
+
+    await connectDB(testUri);
+
+    // Start server on a random available port.
+    await new Promise((resolve) => {
+        server = app.listen(0, () => {
+            const port = server.address().port;
+            baseUrl = `http://127.0.0.1:${port}`;
+            resolve();
         });
     });
+});
 
     after(async () => {
         // Clean up test entities created
@@ -141,20 +155,21 @@ describe("BuildBridge API Integration Test Suite", () => {
     });
 
     test("POST /api/auth/register - successful registration", async () => {
-        const res1 = await request("/api/auth/register", {
-            method: "POST",
-            body: user1
-        });
-        assert.equal(res1.status, 201);
-        assert.ok(res1.data.message);
-
-        // Register user2 as well
-        const res2 = await request("/api/auth/register", {
-            method: "POST",
-            body: user2
-        });
-        assert.equal(res2.status, 201);
+    const res1 = await request("/api/auth/register", {
+        method: "POST",
+        body: user1
     });
+
+    assert.equal(res1.status, 201);
+    assert.ok(res1.data.message);
+
+    const res2 = await request("/api/auth/register", {
+        method: "POST",
+        body: user2
+    });
+
+    assert.equal(res2.status, 201);
+});
 
     test("POST /api/auth/register - reject duplicate email", async () => {
         const res = await request("/api/auth/register", {
