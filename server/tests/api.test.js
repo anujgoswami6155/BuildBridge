@@ -300,9 +300,9 @@ describe("BuildBridge API Integration Test Suite", () => {
                 ]
             }
         });
+        testProjectId = res.data?._id || res.data?.project?._id || "";
         assert.equal(res.status, 201);
-        assert.ok(res.data._id || res.data.project?._id);
-        testProjectId = res.data._id || res.data.project._id;
+        assert.ok(testProjectId);
 
         // Verify POST /api/projects/create also works
         const resCreate = await request("/api/projects/create", {
@@ -401,8 +401,8 @@ describe("BuildBridge API Integration Test Suite", () => {
             headers: { Authorization: `Bearer ${token2}` },
             body: { projectId: testProjectId }
         });
-        assert.equal(applyRes.status, 201);
         testApplicationId = applyRes.data._id || applyRes.data.application?._id;
+        assert.equal(applyRes.status, 201);
         assert.ok(testApplicationId);
 
         // User2 duplicate application -> 400
@@ -483,8 +483,8 @@ describe("BuildBridge API Integration Test Suite", () => {
                 status: "todo"
             }
         });
-        assert.equal(task1Res.status, 201);
         testTaskId = task1Res.data.task?._id || task1Res.data._id;
+        assert.equal(task1Res.status, 201);
         assert.ok(testTaskId);
 
         // Owner can also self-assign task!
@@ -593,8 +593,8 @@ describe("BuildBridge API Integration Test Suite", () => {
             headers: { Authorization: `Bearer ${token2}` },
             body: { content: "Great progress on the sprint!" }
         });
-        assert.equal(postRes.status, 201);
         testCommentId = postRes.data.comment?._id || postRes.data._id;
+        assert.equal(postRes.status, 201);
         assert.ok(testCommentId);
 
         // Get comments
